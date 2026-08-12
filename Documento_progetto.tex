@@ -25,13 +25,16 @@ Il software sarà suddiviso nei seguenti moduli principali:
         \item Verifica della presenza degli argomenti da terminale.
         \item Apertura in lettura del file con gestione di eventuali errori.
         \item Scansione sequenziale del file riga per riga (per minimizzare l'impronta in memoria).
-        \item Estrazione dei singoli identificatori numerici, ignorando le spaziature multiple.
+        \item Isolamento del blocco contenente gli AS (il secondo elemento della riga), ignorando gli elementi finali per ottimizzare i tempi.
+        \item Normalizzazione del blocco isolato sostituendo i caratteri \texttt{|} con spazi vuoti.
+        \item Conversione ed estrazione dei singoli identificatori numerici.
     \end{itemize}
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
         \item \texttt{ifstream} per la gestione dello stream di lettura dal disco.
         \item \texttt{string} per la memorizzazione temporanea della singola riga analizzata.
-        \item \texttt{stringstream} per la conversione dei caratteri in numeri interi.
+        \item \texttt{stringstream} per la divisione dei blocchi e la conversione dei caratteri in numeri interi.
+        \item \texttt{replace} per la sostituzione dei caratteri \texttt{|} nei blocchi.
     \end{itemize}
     \item \textbf{Complessità attesa:} Tempo lineare $O(N)$ rispetto alla lunghezza totale del file in input, in quanto il file viene letto e processato esattamente una sola volta dall'inizio alla fine.
     \item \textbf{Dipendenze:} Non dipende da altri sottomoduli. Agisce come sorgente dati per il Modulo Grafo.
