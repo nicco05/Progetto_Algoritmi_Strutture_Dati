@@ -39,13 +39,42 @@ Il software sarà suddiviso nei seguenti moduli principali:
     \item \textbf{Complessità attesa:} Tempo lineare $O(N)$ rispetto alla lunghezza totale del file in input, in quanto il file viene letto e processato esattamente una sola volta dall'inizio alla fine.
     \item \textbf{Dipendenze:} Non dipende da altri sottomoduli. Agisce come sorgente dati per il Modulo Grafo.
 \end{enumerate}
-    \item \textbf{Modulo Grafo:} Gestirà l'inserimento dinamico dei nodi e degli archi non orientati. Si occuperà inoltre di aggiornare le frequenze sugli archi, eliminare i self-loop ed eventuali duplicati.
+    \item \textbf{Modulo Grafo:} Gestirà l'inserimento dinamico dei nodi e degli archi non orientati. Si occuperà inoltre di aggiornare le frequenze sugli archi, eliminare i self-loop ed eventuali duplicati.\\ \\
+    {\large \textit{Specifiche}}
+\begin{enumerate}
+    \item \textbf{Input:} Sequenze di identificatori numerici (AS ID) che rappresentano i nodi attraversati in un singolo cammino BGP.
+    \item \textbf{Output:} Una struttura dati in memoria che rappresenta il grafo G=(V,E) orientato e pesato (dove il peso è la frequenza), implementato tramite liste di adiacenza.
+    \item \textbf{Specifiche funzionali:}
+    \begin{itemize}
+        \item Ricezione della sequenza di AS.
+        \item Estrazione delle coppie di nodi adiacenti $(u, v)$ dalla sequenza per formare gli archi orientati.
+        \item Eliminazione dei self-loop: durante l'estrazione, se due nodi consecutivi sono identici ($u = v$), il collegamento viene ignorato.
+        \item Inserimento o aggiornamento dell'arco nella lista di adiacenza del nodo sorgente: se l'arco non esiste viene allocato con peso iniziale pari a 1; se esiste, il suo peso viene incrementato.
+    \end{itemize}
+    \item \textbf{Strutture dati utilizzate:}
+    \begin{itemize}
+        \item \textbf{Tabelle Hash} per massimizzare le prestazioni di ricerca, accesso e inserimento degli archi.
+        \item \textbf{Liste di adiacenza} per rappresentare il grafo: la struttura associa a ogni nodo sorgente la lista dei suoi nodi destinazione, memorizzando per ciascun collegamento la frequenza dell'arco.
+    \end{itemize}
+    \item \textbf{Complessità attesa:} Grazie all'uso delle tabelle hash, la ricerca e l'aggiornamento di un arco avvengono in tempo costante $O(1)$. L'elaborazione di un singolo cammino composto da $K$ nodi richiede un tempo $O(K)$.
+    \item \textbf{Dipendenze:} Dipende strettamente dai dati forniti dal Modulo di Caricamento. Agisce come base di partenza per gli algoritmi di interrogazione successivi.
+\end{enumerate}
     \item \textbf{Modulo Algoritmico (Cammini Minimax):} Questo modulo rappresenta il cuore logico del progetto ed è diviso in due fasi principali:
     \begin{itemize}
         \item \textbf{Creazione MST:} Riceve in input il grafo pesato completo dal modulo precedente ed esegue un algoritmo per estrarre il Minimum Spanning Tree. Questa operazione viene eseguita una sola volta per costruire la struttura dati ottimizzata.
         \item \textbf{Fase di Risoluzione:} Sfrutta l'MST per trovare istantaneamente l'unico percorso che collega due nodi dati, calcolando e restituendo il costo minimax ottimo (la massima frequenza attraversata lungo il tragitto).
     \end{itemize}
 \end{itemize}
+
+\section*{Strutture Dati Fondamentali}
+Per implementare in modo efficiente i moduli sopra descritti, si prevede di utilizzare:
+\begin{itemize}
+    \item \textbf{Tabelle Hash}; Fondamentali per mappare i grandi identificatori numerici degli AS in interi consecutivi e per memorizzare/aggiornare le frequenze degli archi.
+    \item \textbf{Liste di Adiacenza:} Utilizzate per la rappresentazione vera e propria del grafo in memoria.
+\end{itemize}
+
+\end{document}
+
 
 \section*{Strutture Dati Fondamentali}
 Per implementare in modo efficiente i moduli sopra descritti, si prevede di utilizzare:
