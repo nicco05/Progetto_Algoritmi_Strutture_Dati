@@ -2,7 +2,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[italian]{babel}
 \usepackage{hyperref}
-\usepackage[margin=3cm]{geometry}
+\usepackage[margin=2cm]{geometry}
 
 \title{Progetto ASD 2026: Algoritmi per Grafi di Autonomous Systems}
 \author{Niccolò Marchesi}
@@ -37,13 +37,13 @@ Il software sarà suddiviso nei seguenti moduli principali:
         \item \texttt{replace} per la sostituzione dei caratteri \texttt{|} nei blocchi.
     \end{itemize}
     \item \textbf{Complessità attesa:} Tempo lineare $O(N)$ rispetto alla lunghezza totale del file in input, in quanto il file viene letto e processato esattamente una sola volta dall'inizio alla fine.
-    \item \textbf{Dipendenze:} Non dipende da altri sottomoduli. Agisce come sorgente dati per il Modulo Grafo.
+    \item \textbf{Dipendenze:} Non dipende da altri sottomoduli, agisce come sorgente dati per il Modulo Grafo.
 \end{enumerate}
-    \item \textbf{Modulo Grafo:} Gestirà l'inserimento dinamico dei nodi e degli archi non orientati. Si occuperà inoltre di aggiornare le frequenze sugli archi, eliminare i self-loop ed eventuali duplicati.\\ \\
+    \item \textbf{Modulo Grafo:} Gestirà l'inserimento dinamico dei nodi e degli archi. Si occuperà inoltre di aggiornare le frequenze sugli archi, eliminare i self-loop ed eventuali duplicati.\\ \\
     {\large \textit{Specifiche}}
 \begin{enumerate}
     \item \textbf{Input:} Sequenze di identificatori numerici (AS ID) che rappresentano i nodi attraversati in un singolo cammino BGP.
-    \item \textbf{Output:} Una struttura dati in memoria che rappresenta il grafo G=(V,E) orientato e pesato (dove il peso è la frequenza), implementato tramite liste di adiacenza.
+    \item \textbf{Output:} Una struttura dati in memoria che rappresenta il grafo $G=(V,E)$ orientato e pesato, dove ogni arco rappresenta una relazione d'adiacenza osservata in un cammino BGP e il cui peso è dato dalla frequenza con cui tale arco compare nei cammini analizzati.
     \item \textbf{Specifiche funzionali:}
     \begin{itemize}
         \item Ricezione della sequenza di AS.
@@ -53,10 +53,14 @@ Il software sarà suddiviso nei seguenti moduli principali:
     \end{itemize}
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
-        \item \textbf{Tabelle Hash} per massimizzare le prestazioni di ricerca, accesso e inserimento degli archi.
-        \item \textbf{Liste di adiacenza} per rappresentare il grafo: la struttura associa a ogni nodo sorgente la lista dei suoi nodi destinazione, memorizzando per ciascun collegamento la frequenza dell'arco.
+        \item \textbf{Tabelle Hash con Hashing Universale:} per la memorizzazione dei nodi verrà utilizzata una tabella hash con funzione di hash universale:
+        \begin{equation}
+             h(x) = ((ax + b) \pmod p) \pmod m
+        \end{equation}
+        e risoluzione delle collisioni tramite liste di concatenazione.
+        \item \textbf{Liste di adiacenza pesate:} la tabella hash mapperà l'ID del nodo sorgente a un contenitore (vettore o lista) di archi uscenti, in cui ogni elemento memorizzerà l'ID del nodo destinazione e la relativa frequenza aggiornata .
     \end{itemize}
-    \item \textbf{Complessità attesa:} Grazie all'uso delle tabelle hash, la ricerca e l'aggiornamento di un arco avvengono in tempo costante $O(1)$. L'elaborazione di un singolo cammino composto da $K$ nodi richiede un tempo $O(K)$.
+    \item \textbf{Complessità attesa:} Grazie all'uso dell'hashing universale, le collisioni sono minimizzate e la ricerca/aggiornamento di un arco avvengono in tempo atteso costante $O(1)$. L'elaborazione di un singolo cammino composto da $K$ nodi richiede quindi un tempo $O(K)$.
     \item \textbf{Dipendenze:} Dipende strettamente dai dati forniti dal Modulo di Caricamento. Agisce come base di partenza per gli algoritmi di interrogazione successivi.
 \end{enumerate}
     \item \textbf{Modulo Algoritmico (Cammini Minimax):} Questo modulo rappresenta il cuore logico del progetto ed è diviso in due fasi principali:
@@ -69,18 +73,8 @@ Il software sarà suddiviso nei seguenti moduli principali:
 \section*{Strutture Dati Fondamentali}
 Per implementare in modo efficiente i moduli sopra descritti, si prevede di utilizzare:
 \begin{itemize}
-    \item \textbf{Tabelle Hash}; Fondamentali per mappare i grandi identificatori numerici degli AS in interi consecutivi e per memorizzare/aggiornare le frequenze degli archi.
-    \item \textbf{Liste di Adiacenza:} Utilizzate per la rappresentazione vera e propria del grafo in memoria.
-\end{itemize}
-
-\end{document}
-
-
-\section*{Strutture Dati Fondamentali}
-Per implementare in modo efficiente i moduli sopra descritti, si prevede di utilizzare:
-\begin{itemize}
-    \item \textbf{Tabelle Hash (\texttt{std::unordered\_map}):} Fondamentali per mappare i grandi identificatori numerici degli AS in interi consecutivi e per memorizzare/aggiornare le frequenze degli archi.
-    \item \textbf{Liste di Adiacenza (\texttt{std::vector}):} Utilizzate per la rappresentazione vera e propria del grafo in memoria.
+    \item \textbf{Tabelle Hash (Hashing Universale):} Fondamentali per gestire la sparsità dei grandi identificatori numerici degli AS, mappandoli in indici di un array tramite una funzione universale randomizzata e gestendo le collisioni.
+    \item \textbf{Liste di Adiacenza:} Utilizzate per la rappresentazione vera e propria del grafo in memoria, associando a ogni nodo i suoi archi e le relative frequenze.
 \end{itemize}
 
 \end{document}
