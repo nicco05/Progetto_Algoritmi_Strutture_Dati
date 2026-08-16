@@ -53,12 +53,13 @@ Il software sarà suddiviso nei seguenti moduli principali:
     \end{itemize}
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
-        \item \textbf{Tabelle Hash con Hashing Universale:} per la memorizzazione dei nodi verrà utilizzata una tabella hash con funzione di hash universale:
+       \item \textbf{Tabelle Hash con Hashing Universale:} per la memorizzazione dei nodi verrà utilizzata una tabella hash con funzione di hash universale:
         \begin{equation}
              h(x) = ((ax + b) \pmod p) \pmod m
         \end{equation}
-        e risoluzione delle collisioni tramite liste di concatenazione.
-        \item \textbf{Liste di adiacenza pesate:} la tabella hash mapperà l'ID del nodo sorgente a un contenitore (vettore o lista) di archi uscenti, in cui ogni elemento memorizzerà l'ID del nodo destinazione e la relativa frequenza aggiornata .
+        dove $m$ indica la dimensione della tabella hash, configurata in proporzione al numero atteso di nodi unici. $p$ è un grande numero primo scelto in modo da essere strettamente maggiore del valore massimo delle chiavi possibili ($p > \max(x)$). $a$ e $b$ sono coefficienti casuali con $1 \le a < p$ e $0 \le b < p$.
+        Inoltre, le collisioni verranno risolte tramite liste di concatenazione (\textit{chaining}), implementate tramite vettori dinamici per ottimizzare l'accesso in memoria.
+        \item \textbf{Liste di adiacenza pesate:} la tabella hash mapperà l'ID del nodo sorgente a un contenitore (vettore o lista) di archi uscenti, in cui ogni elemento memorizzerà l'ID del nodo destinazione e la relativa frequenza aggiornata.
     \end{itemize}
     \item \textbf{Complessità attesa:} Grazie all'uso dell'hashing universale, le collisioni sono minimizzate e la ricerca/aggiornamento di un arco avvengono in tempo atteso costante $O(1)$. L'elaborazione di un singolo cammino composto da $K$ nodi richiede quindi un tempo $O(K)$.
     \item \textbf{Dipendenze:} Dipende strettamente dai dati forniti dal Modulo di Caricamento. Agisce come base di partenza per gli algoritmi di interrogazione successivi.
