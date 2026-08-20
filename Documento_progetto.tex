@@ -44,7 +44,7 @@ Il software sarà suddiviso nei seguenti moduli principali:
     {\large \textit{Specifiche}}
 \begin{enumerate}
     \item \textbf{Input:} Sequenze di identificatori numerici (AS ID) che rappresentano i nodi attraversati in un singolo cammino BGP.
-    \item \textbf{Output:} Una struttura dati in memoria che rappresenta il grafo $G=(V,E)$ orientato e pesato, dove ogni arco rappresenta una relazione d'adiacenza osservata in un cammino BGP e il cui peso è dato dalla frequenza con cui tale arco compare nei cammini analizzati.
+    \item \textbf{Output:} Una struttura dati in memoria che rappresenta il grafo $G=(V,E,W)$ orientato e pesato, dove ogni arco rappresenta una relazione d'adiacenza osservata in un cammino BGP e il cui peso è dato dalla frequenza con cui tale arco compare nei cammini analizzati.
     \item \textbf{Specifiche funzionali:}
     \begin{itemize}
         \item Ricezione della sequenza di AS.
@@ -68,22 +68,22 @@ Il software sarà suddiviso nei seguenti moduli principali:
 \item \textbf{Modulo Algoritmico (Cammini Minimax):} Questo modulo rappresenta il cuore logico del progetto. Poiché il grafo in analisi è strettamente orientato, il modulo implementa una variante dell'algoritmo di Dijkstra (Dijkstra Minimax) per individuare i cammini minimi.\\ \\
     {\large \textit{Specifiche}}
 \begin{enumerate}
-    \item \textbf{Input:} Il grafo orientato e pesato $G=(V,E)$ popolato dal Modulo Grafo, l'identificatore (AS ID) di un nodo sorgente $u$ e di un nodo destinazione $v$.
-    \item \textbf{Output:} Il cammino minimo da $u$ verso $v$, restituito come sequenza dei nodi attraversati per raggiungere la destinazione.
+    \item \textbf{Input:} Il grafo orientato e pesato $G=(V,E,W)$ popolato dal Modulo Grafo, l'identificatore (AS ID) di un nodo sorgente $s$ e di un nodo destinazione $d$.
+    \item \textbf{Output:} Il cammino minimo da $s$ verso $d$, restituito come sequenza dei nodi attraversati per raggiungere la destinazione.
     \item \textbf{Specifiche funzionali (Dijkstra Minimax):}
     \begin{itemize}
-        \item Inizializzazione: il peso del cammino per raggiungere ciascun nodo a partire dalla sorgente $u$ viene inizializzato a $+\infty$, ad eccezione di $u$ stesso il cui peso è 0. Inoltre, nessun nodo possiede inizialmente un predecessore, tranne la sorgente $u$ che è impostata come predecessore di se stessa (fungendo da radice per l'albero in costruzione).
+        \item Inizializzazione: il peso del cammino per raggiungere ciascun nodo a partire dalla sorgente $s$ viene inizializzato a $+\infty$, ad eccezione di $s$ stesso il cui peso è 0. Inoltre, nessun nodo possiede inizialmente un predecessore, tranne la sorgente $s$ che è impostata come predecessore di se stessa (fungendo da radice per l'albero in costruzione).
         \item Popolamento: tutti i nodi del grafo vengono inseriti all'interno di una Coda di Priorità $PQ$.
-        \item Estrazione iterativa: si estrae iterativamente da $PQ$ il nodo $z$ avente il peso del cammino minimo corrente. Questo nodo viene inserito definitivamente nell'albero.
-        \item Fase di aggiornamento (Variante Minimax): per ogni nodo $w$ appartenente alla lista di adiacenza di $z$, si verifica se il passaggio attraverso $z$ garantisce un percorso più efficiente. Se $\max(\text{peso\_cammino}[z], \text{peso\_arco}(z,w))$ risulta strettamente minore della stima attuale $\text{peso\_cammino}[w]$, si aggiorna $\text{peso\_cammino}[w]$ con il nuovo valore e si imposta $z$ come nuovo predecessore di $w$. In caso contrario, le stime non subiscono variazioni.
+        \item Estrazione iterativa: si estrae iterativamente da $PQ$ il nodo $u$ avente il peso del cammino minimo corrente. Questo nodo viene inserito definitivamente nell'albero.
+        \item Fase di aggiornamento (Variante Minimax): per ogni nodo $z$ appartenente alla lista di adiacenza di $u$, si verifica se il passaggio attraverso $u$ garantisce un percorso più efficiente. Se $\max(\text{peso\_cammino}[u], \text{peso\_arco}(u,z))$ risulta strettamente minore della stima attuale $\text{peso\_cammino}[z]$, si aggiorna $\text{peso\_cammino}[z]$ con il nuovo valore e si imposta $u$ come nuovo predecessore di $z$. In caso contrario, le stime non subiscono variazioni.
     \end{itemize}
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
        \item \textbf{Coda di Priorità:} Utilizzata per l'estrazione efficiente del nodo con peso del cammino minimo tramite la libreria standard (\texttt{priority\_queue}).
-       \item \textbf{Strutture di tracciamento:} Vettori ausiliari impiegati per memorizzare dinamicamente le stime dei pesi dei cammini e per tracciare l'albero dei padri (\textit{predecessori}). Quest'ultimo risulta strettamente necessario per la ricostruzione a ritroso del percorso ottimo, dalla destinazione raggiunta fino alla sorgente $u$.
+       \item \textbf{Strutture di tracciamento:} Vettori ausiliari impiegati per memorizzare dinamicamente le stime dei pesi dei cammini e per tracciare l'albero dei padri (\textit{predecessori}). Quest'ultimo risulta strettamente necessario per la ricostruzione a ritroso del percorso ottimo, dalla destinazione raggiunta fino alla sorgente $s$.
     \end{itemize}
     \item \textbf{Complessità attesa:} L'utilizzo di una coda di priorità basata su Min-Heap garantisce un costo di estrazione e aggiornamento logaritmico. La complessità temporale attesa nel caso peggiore è pertanto pari a $O(|E| \log |V|)$. 
-    \\L'algoritmo di Dijkstra viene eseguito a ogni singola richiesta. Per ottimizzare i tempi, l'algoritmo si ferma non appena il nodo destinazione $v$ viene estratto definitivamente dalla coda di priorità.
+    \\L'algoritmo di Dijkstra viene eseguito a ogni singola richiesta. Per ottimizzare i tempi, l'algoritmo si ferma non appena il nodo destinazione $d$ viene estratto definitivamente dalla coda di priorità.
     \item \textbf{Dipendenze:} L'algoritmo si interfaccia direttamente con la struttura dati generata dal Modulo Grafo, utilizzandone le liste di adiacenza come base per l'esplorazione.
 \end{enumerate}
 \end{itemize}
@@ -98,8 +98,6 @@ Per implementare in modo efficiente i moduli sopra descritti, si prevede di util
 
 
 \end{document}
-
-
 
 
 
