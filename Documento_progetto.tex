@@ -80,9 +80,9 @@ Il software sarà suddiviso nei seguenti moduli principali:
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
        \item \textbf{Coda di Priorità:} Utilizzata per l'estrazione efficiente del nodo con peso del cammino minimo tramite la libreria standard (\texttt{priority\_queue}).
-       \item \textbf{Strutture di tracciamento:} Vettori ausiliari impiegati per memorizzare dinamicamente le stime dei pesi dei cammini e per tracciare l'albero dei padri (\textit{predecessori}). Quest'ultimo risulta strettamente necessario per la ricostruzione a ritroso del percorso ottimo, dalla destinazione raggiunta fino alla sorgente $s$.
+       \item \textbf{Strutture di tracciamento (Tabella Hash Custom):} Per memorizzare dinamicamente le stime dei pesi dei cammini e per tracciare l'albero dei padri (\textit{predecessori}) è stata progettata un'apposita Tabella Hash personalizzata, basata anch'essa sull'hashing universale. Questa struttura funge da "taccuino" temporaneo ad accesso rapido durante l'esecuzione di Dijkstra: gestisce internamente le collisioni e memorizza per ogni nodo esplorato una tripla contenente l'ID originale, la stima del peso del cammino e l'AS ID del nodo predecessore, quest'ultimo essenziale per la ricostruzione a ritroso del percorso.
     \end{itemize}
-    \item \textbf{Complessità attesa:} L'utilizzo di una coda di priorità basata su Min-Heap garantisce un costo di estrazione e aggiornamento logaritmico. La complessità temporale attesa nel caso peggiore è pertanto pari a $O(|E| \log |V|)$. 
+    \item \textbf{Complessità attesa:} Le operazioni di lettura e aggiornamento dei pesi all'interno della Tabella Hash custom richiedono un tempo atteso costante $O(1)$, grazie all'impiego dell'hashing universale. Il costo computazionale dominante rimane pertanto l'estrazione e l'inserimento nella Coda di Priorità (Min-Heap), che garantisce tempi logaritmici. La complessità temporale attesa nel caso peggiore si conferma quindi pari a $O(|E| \log |V|)$. 
     \\L'algoritmo di Dijkstra viene eseguito a ogni singola richiesta. Per ottimizzare i tempi, l'algoritmo si ferma non appena il nodo destinazione $d$ viene estratto definitivamente dalla coda di priorità.
     \item \textbf{Dipendenze:} L'algoritmo si interfaccia direttamente con la struttura dati generata dal Modulo Grafo, utilizzandone le liste di adiacenza come base per l'esplorazione.
 \end{enumerate}
@@ -98,7 +98,3 @@ Per implementare in modo efficiente i moduli sopra descritti, si prevede di util
 
 
 \end{document}
-
-
-
-
