@@ -14,58 +14,57 @@
 \maketitle
 
 \section*{Moduli Software e Interazioni}
-Il software viene suddiviso nei seguenti moduli principali:
-\begin{itemize}
-    \item \textbf{Modulo di Caricamento:} Si occupa di leggere in input i dati testuali derivati dai dump reali dei cammini e ne estrae le sequenze numeriche degli AS. \\ \\
-    {\large \textit{Specifiche}}
+Il software viene suddiviso in 3 moduli principali:\\ \\
+{\large\textbf{Modulo di Caricamento:}} Si occupa di leggere in input i dati testuali derivati dai dump reali dei cammini e ne estrae le sequenze numeriche degli AS. \\ \\
+{\large \textit{Specifiche}}
 \begin{enumerate}
     \item \textbf{Input:} File di testo passato come argomento da riga di comando (\texttt{argv[1]}). Il file contiene i cammini BGP; ogni riga rappresenta un singolo cammino, formato da una sequenza di identificatori numerici di Autonomous Systems.
     \item \textbf{Output:} Sequenza di interi (gli AS ID) isolati e sequenziali, che verranno poi inoltrati al modulo di costruzione del grafo.
     \item \textbf{Specifiche funzionali:}
     \begin{itemize}
-        \item Verifica della presenza degli argomenti da terminale.
-        \item Apertura in lettura del file con gestione di eventuali errori.
-        \item Scansione sequenziale del file riga per riga (per minimizzare l'impronta in memoria).
-        \item Isolamento del blocco contenente gli AS (il secondo elemento della riga), ignorando gli elementi finali per ottimizzare i tempi.
-        \item Normalizzazione del blocco isolato sostituendo i caratteri \texttt{|} con spazi vuoti.
-        \item Conversione ed estrazione dei singoli identificatori numerici.
+        \item[-] Verifica della presenza degli argomenti da terminale.
+        \item[-] Apertura in lettura del file con gestione di eventuali errori.
+        \item[-] Scansione sequenziale del file riga per riga (per minimizzare l'impronta in memoria).
+        \item[-] Isolamento del blocco contenente gli AS (il secondo elemento della riga), ignorando gli elementi finali per ottimizzare i tempi.
+        \item[-] Normalizzazione del blocco isolato sostituendo i caratteri \texttt{|} con spazi vuoti.
+        \item[-] Conversione ed estrazione dei singoli identificatori numerici.
     \end{itemize}
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
-        \item \texttt{ifstream} per la gestione dello stream di lettura dal disco.
-        \item \texttt{string} per la memorizzazione temporanea della singola riga analizzata.
-        \item \texttt{stringstream} per la divisione dei blocchi e la conversione dei caratteri in numeri interi.
-        \item \texttt{replace} per la sostituzione dei caratteri \texttt{|} nei blocchi.
+        \item[-] \texttt{ifstream} per la gestione dello stream di lettura dal disco.
+        \item[-] \texttt{string} per la memorizzazione temporanea della singola riga analizzata.
+        \item[-] \texttt{stringstream} per la divisione dei blocchi e la conversione dei caratteri in numeri interi.
+        \item[-] \texttt{replace} per la sostituzione dei caratteri \texttt{|} nei blocchi.
     \end{itemize}
     \item \textbf{Complessità attesa:} Tempo lineare $O(N)$ rispetto alla lunghezza totale del file in input, in quanto il file viene letto e processato esattamente una sola volta dall'inizio alla fine.
     \item \textbf{Dipendenze:} Non dipende da altri sottomoduli, agisce come sorgente dati per il Modulo Grafo.
 \end{enumerate}
-    \item \textbf{Modulo Grafo:} Gestisce l'inserimento dinamico dei nodi e degli archi. Si occupa inoltre di aggiornare le frequenze sugli archi, eliminare i self-loop ed eventuali duplicati.\\ \\
-    {\large \textit{Specifiche}}
+{\large\textbf{Modulo Grafo:}} Gestisce l'inserimento dinamico dei nodi e degli archi. Si occupa inoltre di aggiornare le frequenze sugli archi, eliminare i self-loop ed eventuali duplicati.\\ \\
+{\large \textit{Specifiche}}
 \begin{enumerate}
     \item \textbf{Input:} Sequenze di identificatori numerici (AS ID) che rappresentano i nodi attraversati in un singolo cammino BGP.
     \item \textbf{Output:} Una struttura dati in memoria che rappresenta il grafo $G=(V,E,W)$ orientato e pesato, dove ogni arco rappresenta una relazione d'adiacenza osservata in un cammino BGP e il cui peso è dato dalla frequenza con cui tale arco compare nei cammini analizzati.
     \item \textbf{Specifiche funzionali:}
     \begin{itemize}
-        \item Ricezione della sequenza di AS.
-        \item Estrazione delle coppie di nodi adiacenti $(u, v)$ dalla sequenza per formare gli archi orientati.
-        \item Eliminazione dei self-loop: durante l'estrazione, se due nodi consecutivi sono identici ($u = v$), il collegamento viene ignorato.
-        \item Inserimento o aggiornamento dell'arco nella lista di adiacenza del nodo sorgente: se l'arco non esiste viene allocato con peso iniziale pari a 1; se esiste, il suo peso viene incrementato.
+        \item[-] Ricezione della sequenza di AS.
+        \item[-]Estrazione delle coppie di nodi adiacenti $(u, v)$ dalla sequenza per formare gli archi orientati.
+        \item[-] Eliminazione dei self-loop: durante l'estrazione, se due nodi consecutivi sono identici ($u = v$), il collegamento viene ignorato.
+        \item[-] Inserimento o aggiornamento dell'arco nella lista di adiacenza del nodo sorgente: se l'arco non esiste viene allocato con peso iniziale pari a 1; se esiste, il suo peso viene incrementato.
     \end{itemize}
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
-       \item \texttt{Tabelle Hash con Hashing Universale:} per la memorizzazione dei nodi verrà utilizzata una tabella hash con funzione di hash universale:
+       \item[-] \texttt{Tabelle Hash con Hashing Universale:} per la memorizzazione dei nodi verrà utilizzata una tabella hash con funzione di hash universale:
         \begin{equation}
              h(x) = ((ax + b) \pmod p) \pmod m
         \end{equation}
         dove $m$ indica la dimensione della tabella hash, configurata in proporzione al numero atteso di nodi unici. $p$ è un grande numero primo scelto in modo da essere strettamente maggiore del valore massimo delle chiavi possibili ($p > \max(x)$). $a$ e $b$ sono coefficienti casuali con $1 \le a < p$ e $0 \le b < p$.
         Inoltre, le collisioni verranno risolte tramite liste di concatenazione.(\textit{chaining}), implementate tramite vettori dinamici per ottimizzare l'accesso in memoria.
-        \item \texttt{Liste di adiacenza pesate:} la tabella hash mappa l'ID del nodo sorgente a un contenitore di archi uscenti, in cui ogni elemento memorizza l'ID del nodo destinazione e la relativa frequenza aggiornata.
+        \item[-]\texttt{Liste di adiacenza pesate:} la tabella hash mappa l'ID del nodo sorgente a un contenitore di archi uscenti, in cui ogni elemento memorizza l'ID del nodo destinazione e la relativa frequenza aggiornata.
     \end{itemize}
     \item \textbf{Complessità attesa:} Grazie all'uso dell'hashing universale, le collisioni sono minimizzate e la ricerca/aggiornamento di un arco avvengono in tempo atteso costante $O(1)$. L'elaborazione di un singolo cammino composto da $K$ nodi richiede quindi un tempo $O(K)$.
     \item \textbf{Dipendenze:} Dipende strettamente dai dati forniti dal Modulo di Caricamento. Agisce come base di partenza per il Modulo Algoritmico.
 \end{enumerate}
-\item \textbf{Modulo Algoritmico (Cammini Minimax):} Questo modulo rappresenta il cuore logico del progetto. Poiché il grafo in analisi è strettamente orientato, il modulo implementa una variante dell'algoritmo di Dijkstra per individuare i cammini minimi. \\
+{\large\textbf{Modulo Algoritmico (Cammini Minimax):}} Questo modulo rappresenta il cuore logico del progetto. Poiché il grafo in analisi è strettamente orientato, il modulo implementa una variante dell'algoritmo di Dijkstra per individuare i cammini minimi. \\
 A differenza del metodo standard — in cui il peso per raggiungere ciascun nodo dalla sorgente $s$ viene pre-inizializzato a $+\infty$ e nessun nodo possiede inizialmente un predecessore — si è implementata un'inizializzazione dinamica al fine di eliminare i pesanti costi computazionali e di memoria legati a queste assegnazioni. Tutto ciò è reso possibile dall'implementazione di un'apposita Tabella Hash che funge da tracciatore, memorizzando dinamicamente i pesi dei cammini e i predecessori esclusivamente quando i nodi vengono effettivamente analizzati. \\
 Inoltre è stata adottata una popolazione dinamica della Coda di Priorità (\textit{Lazy Dijkstra}). Questo approccio, che prevede l'inserimento dei nodi man mano che vengono scoperti invece di inserirli tutti all'inizio, è utilizzato per gestire identificatori altamente sparsi come gli AS ID. \\
 Infine, l'ultima differenza con il modello standard è nella selezione del cammino: anziché valutare la classica somma dei pesi, viene implementata la variante Dijkstra Minimax.
@@ -75,29 +74,54 @@ Infine, l'ultima differenza con il modello standard è nella selezione del cammi
     \item \textbf{Output:} Il cammino minimo da $s$ verso $d$, restituito come sequenza dei nodi attraversati per raggiungere la destinazione.
     \item \textbf{Specifiche funzionali:}
     \begin{itemize}
-        \item \texttt{Inizializzazione dinamica:} Grazie all'impiego della Tabella Hash apposita (descritta di seguito), si elimina il costoso ciclo di inizializzazione. Quando l'algoritmo analizza un nodo per la prima volta, la struttura dati lo alloca dinamicamente, assegnandogli in automatico un costo pari a $+\infty$ e nessun predecessore. L'unica inizializzazione esplicita all'avvio consiste nel configurare il nodo sorgente $s$ con peso 0 e se stesso come predecessore.
-        \item \texttt{Popolamento dinamico (Lazy Dijkstra)}: La Coda di Priorità (Min-Heap) viene inizializzata con il solo nodo sorgente $s$. I nodi successivi vengono inseriti dinamicamente (ammettendo duplicati) durante l'aggiornamento dei pesi dei nodi adiacenti a quello analizzato. I duplicati obsoleti vengono ignorati al momento dell'estrazione in tempo $O(1)$.
-        \item \texttt{Estrazione iterativa:} si estrae iterativamente da $PQ$ il nodo $u$ avente il peso del cammino minimo corrente. Questo nodo viene inserito definitivamente nell'albero.
-        \item \texttt{Fase di aggiornamento (Variante Minimax)}: per ogni nodo $z$ appartenente alla lista di adiacenza di $u$, si verifica se il passaggio attraverso $u$ garantisce un percorso più efficiente. Se $\max(\text{peso\_cammino}[u], \text{peso\_arco}(u,z))$ risulta strettamente minore della stima attuale $\text{peso\_cammino}[z]$, si aggiorna $\text{peso\_cammino}[z]$ con il nuovo valore e si imposta $u$ come nuovo predecessore di $z$. In caso contrario, le stime non subiscono variazioni.
+        \item[-] \texttt{Inizializzazione dinamica:} Grazie all'impiego della Tabella Hash apposita (descritta di seguito), si elimina il costoso ciclo di inizializzazione. Quando l'algoritmo analizza un nodo per la prima volta, la struttura dati lo alloca dinamicamente, assegnandogli in automatico un costo pari a $+\infty$ e nessun predecessore. L'unica inizializzazione esplicita all'avvio consiste nel configurare il nodo sorgente $s$ con peso 0 e se stesso come predecessore.
+        \item[-] \texttt{Popolamento dinamico (Lazy Dijkstra)}: La Coda di Priorità (Min-Heap) viene inizializzata con il solo nodo sorgente $s$. I nodi successivi vengono inseriti dinamicamente (ammettendo duplicati) durante l'aggiornamento dei pesi dei nodi adiacenti a quello analizzato. I duplicati obsoleti vengono ignorati al momento dell'estrazione in tempo $O(1)$.
+        \item[-] \texttt{Estrazione iterativa:} si estrae iterativamente da $PQ$ il nodo $u$ avente il peso del cammino minimo corrente. Questo nodo viene inserito definitivamente nell'albero.
+        \item[-] \texttt{Fase di aggiornamento (Variante Minimax)}: per ogni nodo $z$ appartenente alla lista di adiacenza di $u$, si verifica se il passaggio attraverso $u$ garantisce un percorso più efficiente. Se $\max(\text{peso\_cammino}[u], \text{peso\_arco}(u,z))$ risulta strettamente minore della stima attuale $\text{peso\_cammino}[z]$, si aggiorna $\text{peso\_cammino}[z]$ con il nuovo valore e si imposta $u$ come nuovo predecessore di $z$. In caso contrario, le stime non subiscono variazioni.
     \end{itemize}
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
-       \item \texttt{Coda di Priorità:} Utilizzata per l'estrazione efficiente del nodo con peso del cammino minimo tramite la libreria standard (\texttt{priority\_queue}).
-       \item \texttt{Strutture di tracciamento (Tabella Hash Custom):} Per memorizzare dinamicamente le stime dei pesi dei cammini e dei predecessori di ogni nodo è stata progettata un'apposita Tabella Hash personalizzata, basata anch'essa sull'hashing universale. Questa struttura funge da "taccuino" temporaneo ad accesso rapido durante l'esecuzione di Dijkstra: gestisce internamente le collisioni e memorizza per ogni nodo esplorato una tripla contenente l'ID originale, la stima del peso del cammino e l'AS ID del nodo predecessore, quest'ultimo essenziale per la ricostruzione a ritroso del percorso.
+       \item[-] \texttt{Coda di Priorità:} Utilizzata per l'estrazione efficiente del nodo con peso del cammino minimo tramite la libreria standard (\texttt{priority\_queue}).
+       \item[-] \texttt{Strutture di tracciamento (Tabella Hash Custom):} Per memorizzare dinamicamente le stime dei pesi dei cammini e dei predecessori di ogni nodo è stata progettata un'apposita Tabella Hash personalizzata, basata anch'essa sull'hashing universale. Questa struttura funge da "taccuino" temporaneo ad accesso rapido durante l'esecuzione di Dijkstra: gestisce internamente le collisioni e memorizza per ogni nodo esplorato una tripla contenente l'ID originale, la stima del peso del cammino e l'AS ID del nodo predecessore, quest'ultimo essenziale per la ricostruzione a ritroso del percorso.
     \end{itemize}
     \item \textbf{Complessità attesa:} Le operazioni di lettura e aggiornamento dei pesi all'interno della Tabella Hash custom richiedono un tempo atteso costante $O(1)$, grazie all'impiego dell'hashing universale. Il costo computazionale dominante rimane pertanto l'estrazione e l'inserimento nella Coda di Priorità (Min-Heap), che garantisce tempi logaritmici. La complessità temporale attesa nel caso peggiore si conferma quindi pari a $O(|E| \log |V|)$. 
     \\L'algoritmo di Dijkstra viene eseguito a ogni singola richiesta. Per ottimizzare i tempi, l'algoritmo si ferma non appena il nodo destinazione $d$ viene estratto definitivamente dalla coda di priorità.
     \item \textbf{Dipendenze:} L'algoritmo si interfaccia direttamente con la struttura dati generata dal Modulo Grafo, utilizzandone le liste di adiacenza come base per l'esplorazione.
 \end{enumerate}
-\end{itemize}
+
 
 \section*{Strutture Dati Fondamentali}
 Per implementare in modo efficiente i moduli sopra descritti, si prevede di utilizzare:
 \begin{itemize}
-    \item \textbf{Tabelle Hash (Hashing Universale):} Fondamentali per gestire la sparsità dei grandi identificatori numerici degli AS, mappandoli in indici di un array tramite una funzione hash universale randomizzata e gestendo le collisioni. Nel progetto sono state implementate due tabelle custom basate su questo principio: la prima per la memorizzazione strutturale del grafo e la seconda per il tracciamento dinamico dei pesi e dei predecessori durante l'algoritmo di Dijkstra.
-    \item \textbf{Liste di Adiacenza:} Utilizzate per la rappresentazione vera e propria del grafo in memoria, associando a ogni nodo i suoi archi e le relative frequenze.
-    \item \textbf{Coda di Priorità (Min-Heap):} Essenziale per il Modulo Algoritmico nell'implementazione dell'algoritmo di Dijkstra. Permette di estrarre in tempo logaritmico il nodo con il peso del cammino minimo corrente, garantendo l'efficienza temporale $O(|E| \log |V|)$.
+    \item[-] \textbf{Tabelle Hash (Hashing Universale):} Fondamentali per gestire la sparsità dei grandi identificatori numerici degli AS, mappandoli in indici di un array tramite una funzione hash universale randomizzata e gestendo le collisioni. Nel progetto sono state implementate due tabelle custom basate su questo principio: la prima per la memorizzazione strutturale del grafo e la seconda per il tracciamento dinamico dei pesi e dei predecessori durante l'algoritmo di Dijkstra.
+    \item[-] \textbf{Liste di Adiacenza:} Utilizzate per la rappresentazione vera e propria del grafo in memoria, associando a ogni nodo i suoi archi e le relative frequenze.
+    \item[-] \textbf{Coda di Priorità (Min-Heap):} Essenziale per il Modulo Algoritmico nell'implementazione dell'algoritmo di Dijkstra. Permette di estrarre in tempo logaritmico il nodo con il peso del cammino minimo corrente, garantendo l'efficienza temporale $O(|E| \log |V|)$.
 \end{itemize}
 
+\section*{Modulo Opzionale}
+Questo modulo ha lo scopo di riportare: 
+\begin{itemize}
+    \item[-] Il numero di nodi e di archi del grafo.
+    \item[-] La distribuzione delle frequenze sugli archi.
+    \item[-] Il costo ottimo di un cammino Minimax da $s$ a $d$.
+    \item[-] Il numero di cammini di costo Minimax uguale al valore ottimo.
+    \item[-] I tempi di esecuzione degli algoritmi.
+\end{itemize}
+{\large\textbf{Conteggio del numero dei nodi e degli archi del Grafo:}} \\ \\
+{\large\textbf{Conteggio della distribuzione delle frequenze degli archi:}} \\ \\
+{\large\textbf{Calcolo del costo ottimo di un cammino Minimax:}} Il valore del costo ottimo coincide con il peso del cammino minimo associato al nodo destinazione $d$ al termine dell'esecuzione dell'algoritmo di Dijkstra. Tale valore viene estratto in tempo costante $O(1)$ dalla Tabella Hash di tracciamento prima della ricostruzione del vettore contenente il percorso finale da $s$ a $d$. \\
+{\large\textbf{Conteggio Cammini a Costo Minimax Ottimo}}: Dopo aver trovato un percorso ottimale dal nodo sorgente $s$ al nodo destinazione $d$, vogliamo trovare tutti i cammini da $s$ a $d$ aventi un costo Minimax uguale al valore ottimo calcolato da Dijkstra. \\ 
+L'algoritmo impiegato si basa su una visita in profondità (DFS, \textit{Depth-First Search}), integrata con un meccanismo di tracciamento degli stati per evitare loop di esplorazione. \\ \\
+{\large \textit{Specifiche}}
+\begin{enumerate}
+    \item \textbf{Input:} Il grafo orientato $G(V;E;W)$, l'identificatore (AS ID) del nodo sorgente $s$, del nodo destinazione $d$ ed il valore del costo ottimo precedentemente calcolato tramite l'algoritmo di Dijkstra.
+    \item \textbf{Output:} Un valore intero che rappresenta il numero totale dei cammini da $s$ a $d$ aventi un costo Minimax pari al costo ottimo
+    \item \textbf{Specifiche Funzionali:}
+    \item \textbf{Strutture dati utilizzate:}
+    \item \textbf{Complessità attesa:}
+    \item  \textbf{Dipendenze:}
+\end{enumerate} 
+{\large\textbf{Tempi di esecuzione degli algoritmi:}}
 
 \end{document}
+
