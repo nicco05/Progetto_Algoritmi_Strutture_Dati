@@ -272,10 +272,20 @@ int main(int argc,char **argv){
     GrafoHashTable grafo(10000); //  Creazione di un grafo con dimensione della tabella hash m=10000
 
     caricaGrafoDaFile(argv[1], grafo); // Chiamata alla funzione di caricamento
+    cout << "Grafo caricato correttamente." << endl;
 
-    int nodo_sorgente = 3561; // nodi di prova
-    int nodo_destinazione = 4374;   
-    
+    int nodo_sorgente, nodo_destinazione;
+
+    while (true) {
+    cout << "Inserisci il nodo sorgente, oppure -1 per uscire: ";
+    cin >> nodo_sorgente;
+    if (nodo_sorgente == -1) {
+        cout << "Uscita dal programma." << endl;
+        break;
+    }
+    cout << "Inserisci il nodo destinazione: ";
+    cin >> nodo_destinazione;
+
     cout << "\nCalcolo del cammino Minimax da " << nodo_sorgente << " a " << nodo_destinazione << endl;
     vector<int> cammino = grafo.calcolaCamminoMinimax(nodo_sorgente, nodo_destinazione);
 
@@ -289,6 +299,7 @@ int main(int argc,char **argv){
             if (i < cammino.size() - 1) cout << " -> ";
         }
         cout << endl;
+    }
     }
 
     return 0;
