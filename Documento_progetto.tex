@@ -58,7 +58,7 @@ Il software viene suddiviso in 3 moduli principali:\\ \\
              h(x) = ((ax + b) \pmod p) \pmod m
         \end{equation}
         dove $m$ indica la dimensione della tabella hash, configurata in proporzione al numero atteso di nodi unici. $p$ è un grande numero primo scelto in modo da essere strettamente maggiore del valore massimo delle chiavi possibili ($p > \max(x)$). $a$ e $b$ sono coefficienti casuali con $1 \le a < p$ e $0 \le b < p$.
-        Inoltre, le collisioni verranno risolte tramite liste di concatenazione.(\textit{chaining}), implementate tramite vettori dinamici per ottimizzare l'accesso in memoria.
+        Inoltre, le collisioni verranno risolte tramite liste di concatenazione (\textit{chaining}), implementate tramite vettori dinamici per ottimizzare l'accesso in memoria.
         \item[-]\texttt{Liste di adiacenza pesate:} la tabella hash mappa l'ID del nodo sorgente a un contenitore di archi uscenti, in cui ogni elemento memorizza l'ID del nodo destinazione e la relativa frequenza aggiornata.
     \end{itemize}
     \item \textbf{Complessità attesa:} Grazie all'uso dell'hashing universale, le collisioni sono minimizzate e la ricerca/aggiornamento di un arco avvengono in tempo atteso costante $O(1)$. L'elaborazione di un singolo cammino composto da $K$ nodi richiede quindi un tempo $O(K)$.
@@ -107,9 +107,16 @@ Questo modulo ha lo scopo di riportare:
     \item[-] Il numero di cammini di costo Minimax uguale al valore ottimo.
     \item[-] I tempi di esecuzione degli algoritmi.
 \end{itemize}
-{\large\textbf{Conteggio del numero dei nodi e degli archi del Grafo:}} \\ \\
-{\large\textbf{Conteggio della distribuzione delle frequenze degli archi:}} \\ \\
-{\large\textbf{Calcolo del costo ottimo di un cammino Minimax:}} Il valore del costo ottimo coincide con il peso del cammino minimo associato al nodo destinazione $d$ al termine dell'esecuzione dell'algoritmo di Dijkstra. Tale valore viene estratto in tempo costante $O(1)$ dalla Tabella Hash di tracciamento prima della ricostruzione del vettore contenente il percorso finale da $s$ a $d$. \\
+{\large\textbf{Conteggio del numero dei nodi e degli archi del Grafo:}} 
+Il calcolo viene effettuato dopo aver caricato il Grafo, andando a guardare direttamente la struttura dati \texttt{GrafoHashTable}.
+\begin{itemize}
+    \item[-] \textbf{Numero di nodi ($|V|$):} Viene ricavato tramite una rapida scansione delle celle della Tabella Hash. Poiché la struttura gestisce le collisioni tramite liste di concatenazione, è sufficiente sommare il numero di elementi presenti in ciascuna cella per ottenere la cardinalità esatta dei vertici. Tale operazione ha una complessità temporale di $O(m)$, dove $m$ è la dimensione della Tabella Hash.
+    \item[-] \textbf{Numero di archi ($|E|$):} Viene calcolato guardando tutti i nodi memorizzati nella tabella e sommando la dimensione delle rispettive liste di adiacenza. La complessità temporale dell'operazione è $O(m + |V|)$, in quanto l'algoritmo scorre tutte le celle e visita ogni nodo allocato esattamente una volta.
+\end{itemize} 
+{\large\textbf{Conteggio della distribuzione delle frequenze degli archi:}} La distribuzione delle frequenze viene calcolata tramite un approccio a due passate. 
+Nella prima fase, l'algoritmo ispeziona tutti gli archi del grafo per individuare il valore della frequenza massima, ossia del peso massimo. Una volta noto, viene allocato un vettore di interi di dimensione pari a tale valore massimo, inizializzato a zero. Nella seconda fase, scorrendo nuovamente il grafo, la frequenza di ogni arco (quindi il suo peso) viene utilizzata direttamente come indice del vettore per incrementare il relativo contatore di occorrenze in tempo $O(1)$. \\
+Questo metodo evita l'uso di strutture dati ausiliarie complesse e, nonostante possa comportare uno spreco di memoria a causa dei contatori a zero per le frequenze non presenti nel grafo, privilegia le tempistiche. Grazie al tempo di accesso costante in memoria, garantisce una complessità temporale asintotica di $O(m + |V| + |E|)$, proporzionale alla visita dell'intera Tabella Hash e delle relative liste di adiacenza.\\ \\
+{\large\textbf{Calcolo del costo ottimo di un cammino Minimax:}} Il valore del costo ottimo coincide con il peso del cammino minimo associato al nodo destinazione $d$ al termine dell'esecuzione dell'algoritmo di Dijkstra. Tale valore viene estratto in tempo costante $O(1)$ dalla Tabella Hash di tracciamento prima della ricostruzione del vettore contenente il percorso finale da $s$ a $d$. \\ \\
 {\large\textbf{Conteggio Cammini a Costo Minimax Ottimo}}: Dopo aver trovato un percorso ottimale dal nodo sorgente $s$ al nodo destinazione $d$, vogliamo trovare tutti i cammini da $s$ a $d$ aventi un costo Minimax uguale al valore ottimo calcolato da Dijkstra. \\ 
 L'algoritmo impiegato si basa su una visita in profondità (DFS, \textit{Depth-First Search}), integrata con un meccanismo di tracciamento degli stati per evitare loop di esplorazione. \\ \\
 {\large \textit{Specifiche}}
@@ -124,4 +131,3 @@ L'algoritmo impiegato si basa su una visita in profondità (DFS, \textit{Depth-F
 {\large\textbf{Tempi di esecuzione degli algoritmi:}}
 
 \end{document}
-
