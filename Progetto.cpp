@@ -183,6 +183,10 @@ public:
             }
         }
         
+        // Estrazione e stampa del Costo Ottimo
+        int costo_ottimo = taccuino.get_info(nodo_destinazione).costo; 
+        cout << "Costo Ottimo: " << costo_ottimo << endl;
+
         // Ricostruzione del cammino minimax dalla destinazione alla sorgente usando i predecessori
         vector<int> percorso_finale; // Vettore per memorizzare il percorso finale dalla sorgente alla destinazione
         InfoCammino& info_dest = taccuino.get_info(nodo_destinazione); // Recuperiamo le info del nodo destinazione dal taccuino o le creiamo se non esistono ancora
@@ -206,7 +210,63 @@ public:
         return percorso_finale;
     }
 
+    int contaNodi() { // Funzione per contare il numero di nodi nel grafo
+        int count = 0;
+        for (int i = 0; i < m; ++i) { // Scorriamo ogni casella della tabella hash
+            count += table[i].size(); // Aggiungiamo la dimensione di ogni casella alla conta totale
+        }
+        return count; // Ritorniamo il numero totale di nodi
+    }
+
+    int contaArchi() { // Funzione per contare il numero di archi nel grafo
+            int count = 0;
+            for (int i = 0; i < m; ++i) { // Scorriamo ogni casella della tabella hash
+                for (const auto& nodo : table[i]) { // Scorriamo ogni nodo nella casella corrente
+                    count += nodo.adiacenze.size(); // Aggiungiamo il numero di adiacenze del nodo alla conta totale
+                }
+            }
+            return count; // Ritorniamo il numero totale di archi
+        }
+
+        
+    void stampaDistribuzioneFrequenze() {
+        // troviamo la frequenza massima (peso massimo) per capire quanto deve essere grandel'arrey
+        int max_freq = 0;
+        for (int i = 0; i < m; ++i) { 
+            for (const auto& nodo : table[i]) { // fintanto che ci sono nodi nella lista di adiacenza della tabella hash
+                for (const auto& arco : nodo.adiacenze) { //fintanto che ci sono archi nella lista di adiacenza del nodo
+                    if (arco.frequenza > max_freq) {
+                        max_freq = arco.frequenza;
+                    }
+                }
+            }
+        }
+        if (max_freq == 0) { //il grafo non ha archi
+            cout << "Nessun arco trovato nel grafo." << endl;
+            return;
+        }
+
+        vector<int> occorrenze(max_freq + 1, 0); //creiamo un array per contare le occorrenze delle frequenze, inizializzato a 0
+
+        for (int i = 0; i < m; ++i) {
+            for (const auto& nodo : table[i]) {
+                    for (const auto& arco : nodo.adiacenze) {
+                        // Andiamo alla casella della frequenza e aumentiamo il contatore
+                        occorrenze[arco.frequenza]++; //stiamo contando qunati archi hanno quella frequenza (quindi peso)
+                    }
+                }
+            }
+
+        for (int freq = 1; freq <= max_freq; ++freq) { //stampo le frequenze e il numero di archi che hanno quella frequenza
+            if (occorrenze[freq] > 0) { //stampo solo le frequenze che hanno almeno un arco
+                cout << "Frequenza " << freq << ": " << occorrenze[freq] << " archi" << endl;
+            }
+        }
+    
+    }
+
 };
+
 
 
 void caricaGrafoDaFile(const string& nomeFile, GrafoHashTable& grafo) {
@@ -241,23 +301,20 @@ void caricaGrafoDaFile(const string& nomeFile, GrafoHashTable& grafo) {
             int u=-1; // Variabile per sapere se siamo al primo numero della sequenza di nodi (per creare un arco servono coppie di nodi)
             int v; // Variabile per memorizzare i numeri letti dalla riga
 
-            while(ss_numeri >> v) { // Estrae i numeri dal flusso saltando gli spazi bianchi
+            while(ss_numeri >> v) { // estrae i numeri dal flusso saltando gli spazi bianchi
                 if(u!=-1 && u!=v){ //se u è diverso da -1 significa che abbiamo già letto un numero e quindi possiamo creare un arco tra u e v
                                    //u!=v serve ad eliminare i self-loop
                     // qua avviene la comunicazione tra il modulo di caricamento e il modulo grafo
                     grafo.aggiungi_arco(u,v); //aggiungiamo l'arco tra u e v
-                    
-                    // cout << "Aggiunto arco: " << u << " -> " << v << endl; //messaggio di verifica
-
+                    // cout << "Arco creato: " << u << " -> " << v << endl; // linea di controllo
                 }
                 u=v; //aggiorniamo u con il valore di v per il prossimo arco
                 
             }
         }
     }
-    file.close(); // Chiusura del file dopo la lettura
+    file.close(); // chiusura del file dopo la lettura
 }
-
 
 
 int main(int argc,char **argv){
@@ -271,8 +328,13 @@ int main(int argc,char **argv){
 
     GrafoHashTable grafo(10000); //  Creazione di un grafo con dimensione della tabella hash m=10000
 
-    caricaGrafoDaFile(argv[1], grafo); // Chiamata alla funzione di caricamento
-    cout << "Grafo caricato correttamente." << endl;
+    caricaGrafoDaFile(argv[1], grafo); // Chiamata alla funzione di caricamento, creo il grafo
+    
+    cout << "Distribuzione delle frequenze degli archi nel grafo: " << endl;
+    grafo.stampaDistribuzioneFrequenze(); 
+    cout << "Numero di nodi nel grafo: " << grafo.contaNodi() << endl;
+    cout << "Numero di archi nel grafo: " << grafo.contaArchi() << endl;
+    
 
     int nodo_sorgente, nodo_destinazione;
 
