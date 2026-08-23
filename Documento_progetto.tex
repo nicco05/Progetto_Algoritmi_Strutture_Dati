@@ -110,8 +110,8 @@ Questo modulo ha lo scopo di riportare:
 {\large\textbf{Conteggio del numero dei nodi e degli archi del Grafo:}} 
 Il calcolo viene effettuato dopo aver caricato il Grafo, andando a guardare direttamente la struttura dati \texttt{GrafoHashTable}.
 \begin{itemize}
-    \item[-] \textbf{Numero di nodi ($|V|$):} Viene ricavato tramite una rapida scansione delle celle della Tabella Hash. Poiché la struttura gestisce le collisioni tramite liste di concatenazione, è sufficiente sommare il numero di elementi presenti in ciascuna cella per ottenere la cardinalità esatta dei vertici. Tale operazione ha una complessità temporale di $O(m)$, dove $m$ è la dimensione della Tabella Hash.
-    \item[-] \textbf{Numero di archi ($|E|$):} Viene calcolato guardando tutti i nodi memorizzati nella tabella e sommando la dimensione delle rispettive liste di adiacenza. La complessità temporale dell'operazione è $O(m + |V|)$, in quanto l'algoritmo scorre tutte le celle e visita ogni nodo allocato esattamente una volta.
+    \item[-] \texttt{Numero di nodi ($|V|$):} Viene ricavato tramite una rapida scansione delle celle della Tabella Hash. Poiché la struttura gestisce le collisioni tramite liste di concatenazione, è sufficiente sommare il numero di elementi presenti in ciascuna cella per ottenere la cardinalità esatta dei vertici. Tale operazione ha una complessità temporale di $O(m)$, dove $m$ è la dimensione della Tabella Hash.
+    \item[-] \texttt{Numero di archi ($|E|$):} Viene calcolato guardando tutti i nodi memorizzati nella tabella e sommando la dimensione delle rispettive liste di adiacenza. La complessità temporale dell'operazione è $O(m + |V|)$, in quanto l'algoritmo scorre tutte le celle e visita ogni nodo allocato esattamente una volta.
 \end{itemize} 
 {\large\textbf{Conteggio della distribuzione delle frequenze degli archi:}} La distribuzione delle frequenze viene calcolata tramite un approccio a due passate. 
 Nella prima fase, l'algoritmo ispeziona tutti gli archi del grafo per individuare il valore della frequenza massima, ossia del peso massimo. Una volta noto, viene allocato un vettore di interi di dimensione pari a tale valore massimo, inizializzato a zero. Nella seconda fase, scorrendo nuovamente il grafo, la frequenza di ogni arco (quindi il suo peso) viene utilizzata direttamente come indice del vettore per incrementare il relativo contatore di occorrenze in tempo $O(1)$. \\
@@ -123,10 +123,20 @@ L'algoritmo impiegato si basa su una visita in profondità (DFS, \textit{Depth-F
 \begin{enumerate}
     \item \textbf{Input:} Il grafo orientato $G(V;E;W)$, l'identificatore (AS ID) del nodo sorgente $s$, del nodo destinazione $d$ ed il valore del costo ottimo precedentemente calcolato tramite l'algoritmo di Dijkstra.
     \item \textbf{Output:} Un valore intero che rappresenta il numero totale dei cammini da $s$ a $d$ aventi un costo Minimax pari al costo ottimo
-    \item \textbf{Specifiche Funzionali:}
-    \item \textbf{Strutture dati utilizzate:}
-    \item \textbf{Complessità attesa:}
-    \item  \textbf{Dipendenze:}
+    \item \textbf{Specifiche Funzionali:} L'algoritmo si divide in due componenti: una funzione ausiliaria di inizializzazione e la funzione ricorsiva vera e propria.
+\begin{enumerate}
+    \item[-] \texttt{Inizializzazione:} Crea una Tabella Hash apposita per tracciare lo stato dei nodi (impostando di default tutti i vertici come "non visitati") e inizializza a zero il contatore dei percorsi. Successivamente, innesca l'esplorazione chiamando la funzione ricorsiva alla quale trasferisce: il nodo sorgente (come punto di partenza), la destinazione, il Costo Minimax ottimo e i riferimenti al contatore e alla struttura dati di tracciamento.
+    \item[-] \texttt{Verifica del traguardo (Caso Base):} All'interno della ricorsione, l'algoritmo controlla se il nodo corrente coincide con la destinazione $d$. In caso affermativo, incrementa il contatore dei percorsi trovati, interrompe il ramo corrente e torna al chiamante.
+    \item[-] \texttt{Marcatura del nodo:} Se non si è giunti a destinazione, il nodo corrente viene marcato come 'visitato' nella struttura dati di tracciamento per evitare loop.
+    \item[-] \texttt{Esplorazione:} Viene avviato un ciclo sulle adiacenze del nodo corrente. Per ogni arco $(u, v)$ di peso $w$, la ricorsione prosegue verso $v$ se e solo se vengono superate due condizioni: il nodo $v$ non deve essere già marcato come visitato ed il peso $w$ deve essere minore o uguale al costo Minimax ottimo.
+    \item[-] \texttt{Sblocco del nodo:} Al termine del ciclo sulle adiacenze, il nodo corrente viene esplicitamente smarcato ('non visitato'). Questo permette al vertice di tornare disponibile per essere attraversato da altri percorsi alternativi provenienti da diramazioni differenti.
+\end{enumerate}
+    \item \textbf{Strutture dati utilizzate:} 
+\begin{itemize}
+    \item[-] \texttt{Tabella Hash:} Per tracciare lo stato dei nodi è stata utilizzata la stessa classe sviluppata per il calcolo di Dijkstra con una lieve modifica della struttura interna \textit{InfoCammino} (aggiunta di un campo booleano \texttt{visitato = false}). Questo adattamento permette di sfruttare le prestazioni di accesso in $O(1)$ della Tabella Hash per gestire agilmente lo stato di visita dei nodi durante lo sblocco di questi, senza dover creare nuove sovrastrutture.
+\end{itemize}
+    \item \textbf{Complessità attesa:} È fondamentale distinguere l'algoritmo impiegato dalla classica visita DFS. La complessità teorica di una DFS standard, che si limita a visitare ogni vertice e ogni arco una sola volta marcandoli definitivamente, ha un tempo lineare di $O(|V| + |E|)$. Tuttavia, il nostro obiettivo è contare tutti i cammini di costo Minimax. Sbloccando i nodi al ritorno dalla ricorsione, l'algoritmo ripercorre più volte le stesse porzioni di Grafo perciò la complessità scala in base al numero di percorsi possibili, arrivando al caso pessimo esponenziale $O(|V|!)$ per grafi densi. Nel caso medio, grazie al vincolo $w \le CostoMinimaxOttimo$, lo spazio di ricerca viene ridotto rendendo il calcolo più efficiente.
+    \item \textbf{Dipendenze:} Dipende dal Modulo Algoritmico precedente. La ricerca ricorsiva necessita infatti che l'algoritmo di Dijkstra abbia concluso la propria esecuzione per fornire il Costo Minimax.
 \end{enumerate} 
 {\large\textbf{Tempi di esecuzione degli algoritmi:}}
 
