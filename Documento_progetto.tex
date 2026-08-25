@@ -14,8 +14,8 @@
 \maketitle
 
 \section*{Moduli Software e Interazioni}
-Il software viene suddiviso in 3 moduli principali:\\ \\
-{\large\textbf{Modulo di Caricamento:}} Si occupa di leggere in input i dati testuali derivati dai dump reali dei cammini e ne estrae le sequenze numeriche degli AS. \\ \\
+Il software viene suddiviso in tre moduli principali:\\ \\
+{\large\textbf{Modulo di Caricamento:}} Si occupa di leggere in input i dati testuali derivati dai dump reali dei cammini estraendone le sequenze numeriche degli AS. \\ \\
 {\large \textit{Specifiche}}
 \begin{enumerate}
     \item \textbf{Input:} File di testo passato come argomento da riga di comando (\texttt{argv[1]}). Il file contiene i cammini BGP; ogni riga rappresenta un singolo cammino, formato da una sequenza di identificatori numerici di Autonomous Systems.
@@ -39,7 +39,7 @@ Il software viene suddiviso in 3 moduli principali:\\ \\
     \item \textbf{Complessità attesa:} Tempo lineare $O(N)$ rispetto alla lunghezza totale del file in input, in quanto il file viene letto e processato esattamente una sola volta dall'inizio alla fine.
     \item \textbf{Dipendenze:} Non dipende da altri sottomoduli, agisce come sorgente dati per il Modulo Grafo.
 \end{enumerate}
-{\large\textbf{Modulo Grafo:}} Gestisce l'inserimento dinamico dei nodi e degli archi. Si occupa inoltre di aggiornare le frequenze sugli archi, eliminare i self-loop ed eventuali duplicati.\\ \\
+{\large\textbf{Modulo Grafo:}} Gestisce l'inserimento dinamico dei nodi e degli archi, occupandosi inoltre di aggiornare le relative frequenze e di eliminare i self-loop e i collegamenti duplicati.\\ \\
 {\large \textit{Specifiche}}
 \begin{enumerate}
     \item \textbf{Input:} Sequenze di identificatori numerici (AS ID) che rappresentano i nodi attraversati in un singolo cammino BGP.
@@ -47,7 +47,7 @@ Il software viene suddiviso in 3 moduli principali:\\ \\
     \item \textbf{Specifiche funzionali:}
     \begin{itemize}
         \item[-] Ricezione della sequenza di AS.
-        \item[-]Estrazione delle coppie di nodi adiacenti $(u, v)$ dalla sequenza per formare gli archi orientati.
+        \item[-] Estrazione delle coppie di nodi adiacenti $(u, v)$ dalla sequenza per formare gli archi orientati.
         \item[-] Eliminazione dei self-loop: durante l'estrazione, se due nodi consecutivi sono identici ($u = v$), il collegamento viene ignorato.
         \item[-] Inserimento o aggiornamento dell'arco nella lista di adiacenza del nodo sorgente: se l'arco non esiste viene allocato con peso iniziale pari a 1; se esiste, il suo peso viene incrementato.
     \end{itemize}
@@ -55,7 +55,7 @@ Il software viene suddiviso in 3 moduli principali:\\ \\
     \begin{itemize}
        \item[-] \texttt{Tabelle Hash con Hashing Universale:} per la memorizzazione dei nodi verrà utilizzata una tabella hash con funzione di hash universale:
         \begin{equation}
-             h(x) = ((ax + b) \pmod p) \pmod m
+             h(x) = ((ax + b) \bmod p) \bmod m
         \end{equation}
         dove $m$ indica la dimensione della tabella hash, configurata in proporzione al numero atteso di nodi unici. $p$ è un grande numero primo scelto in modo da essere strettamente maggiore del valore massimo delle chiavi possibili ($p > \max(x)$). $a$ e $b$ sono coefficienti casuali con $1 \le a < p$ e $0 \le b < p$.
         Inoltre, le collisioni verranno risolte tramite liste di concatenazione (\textit{chaining}), implementate tramite vettori dinamici per ottimizzare l'accesso in memoria.
@@ -65,7 +65,7 @@ Il software viene suddiviso in 3 moduli principali:\\ \\
     \item \textbf{Dipendenze:} Dipende strettamente dai dati forniti dal Modulo di Caricamento. Agisce come base di partenza per il Modulo Algoritmico.
 \end{enumerate}
 {\large\textbf{Modulo Algoritmico (Cammini Minimax):}} Questo modulo rappresenta il cuore logico del progetto. Poiché il grafo in analisi è strettamente orientato, il modulo implementa una variante dell'algoritmo di Dijkstra per individuare i cammini minimi. \\
-A differenza del metodo standard — in cui il peso per raggiungere ciascun nodo dalla sorgente $s$ viene pre-inizializzato a $+\infty$ e nessun nodo possiede inizialmente un predecessore — si è implementata un'inizializzazione dinamica al fine di eliminare i pesanti costi computazionali e di memoria legati a queste assegnazioni. Tutto ciò è reso possibile dall'implementazione di un'apposita Tabella Hash che funge da tracciatore, memorizzando dinamicamente i pesi dei cammini e i predecessori esclusivamente quando i nodi vengono effettivamente analizzati. \\
+A differenza del metodo standard — in cui il peso per raggiungere ciascun nodo dalla sorgente $s$ viene pre-inizializzato a $+\infty$ e nessun nodo possiede inizialmente un predecessore — si è implementata un'inizializzazione dinamica al fine di eliminare i pesanti costi computazionali e di memoria legati a queste assegnazioni. Tutto ciò è reso possibile dall'implementazione di un'apposita Tabella Hash che funge da tracciatore, memorizzando dinamicamente i costi dei cammini e i predecessori esclusivamente quando i nodi vengono effettivamente analizzati. \\
 Inoltre è stata adottata una popolazione dinamica della Coda di Priorità (\textit{Lazy Dijkstra}). Questo approccio, che prevede l'inserimento dei nodi man mano che vengono scoperti invece di inserirli tutti all'inizio, è utilizzato per gestire identificatori altamente sparsi come gli AS ID. \\
 Infine, l'ultima differenza con il modello standard è nella selezione del cammino: anziché valutare la classica somma dei pesi, viene implementata la variante Dijkstra Minimax.
  \\ \\   {\large \textit{Specifiche}}
@@ -75,9 +75,10 @@ Infine, l'ultima differenza con il modello standard è nella selezione del cammi
     \item \textbf{Specifiche funzionali:}
     \begin{itemize}
         \item[-] \texttt{Inizializzazione dinamica:} Grazie all'impiego della Tabella Hash apposita (descritta di seguito), si elimina il costoso ciclo di inizializzazione. Quando l'algoritmo analizza un nodo per la prima volta, la struttura dati lo alloca dinamicamente, assegnandogli in automatico un costo pari a $+\infty$ e nessun predecessore. L'unica inizializzazione esplicita all'avvio consiste nel configurare il nodo sorgente $s$ con peso 0 e se stesso come predecessore.
-        \item[-] \texttt{Popolamento dinamico (Lazy Dijkstra)}: La Coda di Priorità (Min-Heap) viene inizializzata con il solo nodo sorgente $s$. I nodi successivi vengono inseriti dinamicamente (ammettendo duplicati) durante l'aggiornamento dei pesi dei nodi adiacenti a quello analizzato. I duplicati obsoleti vengono ignorati al momento dell'estrazione in tempo $O(1)$.
+        \item[-] \texttt{Popolamento dinamico (Lazy Dijkstra)}: La Coda di Priorità (Min-Heap) viene inizializzata con il solo nodo sorgente $s$. I nodi successivi vengono inseriti dinamicamente (ammettendo duplicati) durante l'aggiornamento dei pesi dei nodi adiacenti a quello analizzato. I duplicati obsoleti vengono ignorati (scartati) al momento dell'estrazione, operazione che richiede tempo $O(\log \vert{}V\vert{})$
         \item[-] \texttt{Estrazione iterativa:} si estrae iterativamente da $PQ$ il nodo $u$ avente il peso del cammino minimo corrente. Questo nodo viene inserito definitivamente nell'albero.
         \item[-] \texttt{Fase di aggiornamento (Variante Minimax)}: per ogni nodo $z$ appartenente alla lista di adiacenza di $u$, si verifica se il passaggio attraverso $u$ garantisce un percorso più efficiente. Se $\max(\text{peso\_cammino}[u], \text{peso\_arco}(u,z))$ risulta strettamente minore della stima attuale $\text{peso\_cammino}[z]$, si aggiorna $\text{peso\_cammino}[z]$ con il nuovo valore e si imposta $u$ come nuovo predecessore di $z$. In caso contrario, le stime non subiscono variazioni.
+        \item[-] \texttt{Ricostruzione del percorso:} Una volta completata l'estrazione o raggiunto il nodo destinazione $d$,viene ricostruito a ritroso il cammino ottimale. Grazie alla Tabella Hash, viene risalita iterativamente la catena dei vertici (sfruttando il campo \texttt{predecessore}) partendo da $d$ fino a raggiungere la sorgente $s$. Poiché l'iterazione genera il percorso al contrario, la sequenza ottenuta viene invertita.
     \end{itemize}
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
@@ -138,6 +139,16 @@ L'algoritmo impiegato si basa su una visita in profondità (DFS, \textit{Depth-F
     \item \textbf{Complessità attesa:} È fondamentale distinguere l'algoritmo impiegato dalla classica visita DFS. La complessità teorica di una DFS standard, che si limita a visitare ogni vertice e ogni arco una sola volta marcandoli definitivamente, ha un tempo lineare di $O(|V| + |E|)$. Tuttavia, il nostro obiettivo è contare tutti i cammini di costo Minimax. Sbloccando i nodi al ritorno dalla ricorsione, l'algoritmo ripercorre più volte le stesse porzioni di Grafo perciò la complessità scala in base al numero di percorsi possibili, arrivando al caso pessimo esponenziale $O(|V|!)$ per grafi densi. Nel caso medio, grazie al vincolo $w \le CostoMinimaxOttimo$, lo spazio di ricerca viene ridotto rendendo il calcolo più efficiente.
     \item \textbf{Dipendenze:} Dipende dal Modulo Algoritmico precedente. La ricerca ricorsiva necessita infatti che l'algoritmo di Dijkstra abbia concluso la propria esecuzione per fornire il Costo Minimax.
 \end{enumerate} 
-{\large\textbf{Tempi di esecuzione degli algoritmi:}}
+{\large\textbf{Tempi di esecuzione degli algoritmi:}}I tempi di esecuzione sono stati misurati considerando esclusivamente il calcolo degli algoritmi, escludendo i ritardi causati dalla stampa dei risultati a schermo. Per effettuare le misurazioni è stata impiegata la libreria standard C++ \texttt{chrono}, sfruttando nello specifico l'oggetto \texttt{chrono::high\_resolution\_clock}, che garantisce la massima precisione temporale offerta dal sistema. \\
+La metodologia di campionamento si basa sul calcolo della differenza tra due timestamp:
+\begin{itemize}
+    \item[-] \texttt{T\_start}: acquisito nell'istante immediatamente precedente alla chiamata della funzione algoritmica.
+    \item[-] \texttt{T\_end}: acquisito nell'esatto istante in cui la funzione termina la sua esecuzione.
+\end{itemize}
+La differenza temporale netta ($\Delta T = \texttt{T\_end} - \texttt{T\_start}$) rappresenta il tempo effettivo impiegato. Per fornire risultati chiari e leggibili, il dato finale viene convertito (tramite \texttt{chrono::duration\_cast}) utilizzando due diverse unità di misura a seconda del contesto:
+\begin{itemize}
+    \item[-] \texttt{Millisecondi ($ms$)} per la fase di caricamento e costruzione del Grafo, poiché le operazioni di lettura da disco richiedono tempi nettamente superiori rispetto ai calcoli fatti nella memoria RAM.
+    \item[-] \texttt{Microsecondi ($\mu s$)} per l'esecuzione degli algoritmi in memoria (Dijkstra, DFS e funzioni di conteggio), al fine di catturare con la massima precisione le elevate velocità di calcolo.
+\end{itemize}
 
 \end{document}
