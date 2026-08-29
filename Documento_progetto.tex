@@ -15,29 +15,37 @@
 
 \section*{Moduli Software e Interazioni}
 Il software viene suddiviso in tre moduli principali:\\ \\
-{\large\textbf{Modulo di Caricamento:}} Si occupa di leggere in input i dati testuali derivati dai dump reali dei cammini estraendone le sequenze numeriche degli AS. \\ \\
+{\large\textbf{Modulo di Caricamento:}} Interamente contenuto all'interno di una funzione \texttt{void} dedicata (\texttt{caricaGrafoDaFile}), questo modulo ha lo scopo di estrarre le sequenze numeriche degli AS dai dump BGP e le inietta dinamicamente nella struttura dati del Grafo passata per riferimento. \\ \\
 {\large \textit{Specifiche}}
 \begin{enumerate}
-    \item \textbf{Input:} File di testo passato come argomento da riga di comando (\texttt{argv[1]}). Il file contiene i cammini BGP; ogni riga rappresenta un singolo cammino, formato da una sequenza di identificatori numerici di Autonomous Systems.
-    \item \textbf{Output:} Sequenza di interi (gli AS ID) isolati e sequenziali, che verranno poi inoltrati al modulo di costruzione del grafo.
+    \item \textbf{Input:} Un flusso di dati proveniente da un file testuale locale, il cui percorso è fornito tramite argomento a riga di comando (\texttt{argv[1]}). Il file contiene record BGP; ciascuna riga rappresenta un singolo cammino espresso come sequenza logica di identificatori (AS ID) separati da caratteri testuali.
+    \item \textbf{Output:} Nessun valore di ritorno esplicito (\texttt{void}). Estrae le coppie di vertici adiacenti $(u, v)$ e invoca i metodi del Grafo per l'inserimento effettivo.
     \item \textbf{Specifiche funzionali:}
     \begin{itemize}
-        \item[-] Verifica della presenza degli argomenti da terminale.
-        \item[-] Apertura in lettura del file con gestione di eventuali errori.
-        \item[-] Scansione sequenziale del file riga per riga (per minimizzare l'impronta in memoria).
-        \item[-] Isolamento del blocco contenente gli AS (il secondo elemento della riga), ignorando gli elementi finali per ottimizzare i tempi.
-        \item[-] Normalizzazione del blocco isolato sostituendo i caratteri \texttt{|} con spazi vuoti.
-        \item[-] Conversione ed estrazione dei singoli identificatori numerici.
+        \item[-] Prima dell'invocazione del modulo, il flusso di controllo principale (\texttt{main}) ispeziona il numero di argomenti passati a riga di comando (\texttt{argc}). Se il parametro è inferiore a 2, viene innescata una terminazione del programma notificando l'assenza del file sorgente, prevenendo a monte errori di inizializzazione.
+        \item[-] Apertura del file passato per argomento tramite la classe \texttt{ifstream}.
+        \item[-] Attraverso il metodo \texttt{is\_open()} si verifica se l'apertura è andata a buon fine. In caso di fallimento, l'algoritmo esegue un \textit{early-exit} logico per prevenire crash di sistema.
+        \item[-] Lettura sequenziale del file riga per riga tramite il costrutto \texttt{while (getline(file, line))}, dove la funzione \texttt{getline} legge i caratteri dello stream uno ad uno fino a che non incontra il carattere speciale di fine riga, salva la stringa appena letta dentro la variabile \texttt{line} e restituisce \textit{True} se questa operazione è andata a buon fine.
+        \item[-] Trasformazione della stringa \texttt{line} in un flusso di dati tramite l'oggetto \texttt{stringstream ss(line)} (dove \texttt{ss} è il nome assegnato al flusso temporaneo).
+        \item[-] Utilizzando l'operatore di estrazione \texttt{>>} si ricavano le prime due parole dal flusso. Questa estrazione viene eseguita solo se ci sono almeno due parole disponibili. (Nota: Le sequenze degli AS sono sempre il secondo elemento di ogni riga, pertanto il blocco di dati successivo viene volontariamente ignorato per ottimizzare i tempi). 
+        \item[-] Sostituzione dinamica dei delimitatori testuali \texttt{|} con spazi bianchi nella seconda parola (\texttt{sequenza\_as}) tramite l'algoritmo \texttt{replace}, preparando la stringa per la successiva estrazione numerica diretta.
+        \item[-] Usando nuovamente un oggetto \texttt{stringstream ss\_numeri(sequenza\_as)}, si trasforma la seconda parola modificata in un nuovo stream per leggere la sequenza degli AS.
+        \item[-] Inizializzazione delle variabili intere $u$ e $v$. Queste sono utilizzate per mantenere in memoria due numeri consecutivi durante la lettura. La variabile $u$ viene inizializzata a -1 per indicare che non è ancora stata completata la lettura della prima coppia.
+        \item[-] Lettura sequenziale dei numeri tramite l'operatore \texttt{>>} all'interno del ciclo \texttt{while (ss\_numeri >> v)}, salvando il valore estratto in $v$. Successivamente si verifica che $u$ sia diverso da -1 e che $u$ e $v$ siano tra loro diversi (per prevenire i self-loop). Se le condizioni sono soddisfatte, l'arco $(u, v)$ viene inserito nel Grafo. Infine, si pone $u = v$ per passare alla coppia di valori successiva.
+        \item[-] Chiusura del file al termine della scansione tramite il metodo \texttt{file.close()}.
     \end{itemize}
-    \item \textbf{Strutture dati utilizzate:}
+    \item \textbf{Strutture dati e Strumenti utilizzati:}
     \begin{itemize}
-        \item[-] \texttt{ifstream} per la gestione dello stream di lettura dal disco.
-        \item[-] \texttt{string} per la memorizzazione temporanea della singola riga analizzata.
-        \item[-] \texttt{stringstream} per la divisione dei blocchi e la conversione dei caratteri in numeri interi.
-        \item[-] \texttt{replace} per la sostituzione dei caratteri \texttt{|} nei blocchi.
+        \item[-] \texttt{ifstream}: Per la gestione dello stream di lettura unidirezionale dal disco.
+        \item[-] \texttt{string}: Per la memorizzazione temporanea della singola riga analizzata.
+        \item[-] \texttt{stringstream}: Per la conversione della stringa in uno stream elaborabile, estraendo i valori numerici in modo efficiente e sfruttando l'avanzamento automatico tra gli spazi bianchi.
+        \item[-] \texttt{replace}: Per la sostituzione dei caratteri \texttt{|} nei blocchi di testo.
     \end{itemize}
-    \item \textbf{Complessità attesa:} Tempo lineare $O(N)$ rispetto alla lunghezza totale del file in input, in quanto il file viene letto e processato esattamente una sola volta dall'inizio alla fine.
-    \item \textbf{Dipendenze:} Non dipende da altri sottomoduli, agisce come sorgente dati per il Modulo Grafo.
+    \item \textbf{Complessità attesa:} 
+    \begin{itemize}
+        \item[-] Il costo asintotico è lineare $O(N)$, dove $N$ rappresenta la dimensione totale in byte del file. L'input viene letto e processato esattamente una sola volta dall'inizio alla fine, rendendo i tempi proporzionali esclusivamente alla grandezza del dump.
+    \end{itemize}
+    \item \textbf{Dipendenze e Accoppiamento:} Il modulo non dipende da altri sottomoduli. Agisce esclusivamente come sorgente dati per il Modulo Grafo. 
 \end{enumerate}
 {\large\textbf{Modulo Grafo:}} Gestisce l'inserimento dinamico dei nodi e degli archi, occupandosi inoltre di aggiornare le relative frequenze e di eliminare i self-loop e i collegamenti duplicati.\\ \\
 {\large \textit{Specifiche}}
@@ -78,7 +86,7 @@ Infine, l'ultima differenza con il modello standard è nella selezione del cammi
         \item[-] \texttt{Popolamento dinamico (Lazy Dijkstra)}: La Coda di Priorità (Min-Heap) viene inizializzata con il solo nodo sorgente $s$. I nodi successivi vengono inseriti dinamicamente (ammettendo duplicati) durante l'aggiornamento dei pesi dei nodi adiacenti a quello analizzato. I duplicati obsoleti vengono ignorati (scartati) al momento dell'estrazione, operazione che richiede tempo $O(\log \vert{}V\vert{})$
         \item[-] \texttt{Estrazione iterativa:} si estrae iterativamente da $PQ$ il nodo $u$ avente il peso del cammino minimo corrente. Questo nodo viene inserito definitivamente nell'albero.
         \item[-] \texttt{Fase di aggiornamento (Variante Minimax)}: per ogni nodo $z$ appartenente alla lista di adiacenza di $u$, si verifica se il passaggio attraverso $u$ garantisce un percorso più efficiente. Se $\max(\text{peso\_cammino}[u], \text{peso\_arco}(u,z))$ risulta strettamente minore della stima attuale $\text{peso\_cammino}[z]$, si aggiorna $\text{peso\_cammino}[z]$ con il nuovo valore e si imposta $u$ come nuovo predecessore di $z$. In caso contrario, le stime non subiscono variazioni.
-        \item[-] \texttt{Ricostruzione del percorso:} Una volta completata l'estrazione o raggiunto il nodo destinazione $d$,viene ricostruito a ritroso il cammino ottimale. Grazie alla Tabella Hash, viene risalita iterativamente la catena dei vertici (sfruttando il campo \texttt{predecessore}) partendo da $d$ fino a raggiungere la sorgente $s$. Poiché l'iterazione genera il percorso al contrario, la sequenza ottenuta viene invertita.
+        \item[-] \texttt{Ricostruzione del percorso:} Una volta completata l'estrazione o raggiunto il nodo destinazione $d$, viene ricostruito a ritroso il cammino ottimale. Grazie alla Tabella Hash, viene risalita iterativamente la catena dei vertici (sfruttando il campo \texttt{predecessore}) partendo da $d$ fino a raggiungere la sorgente $s$. Poiché l'iterazione genera il percorso al contrario, la sequenza ottenuta viene invertita.
     \end{itemize}
     \item \textbf{Strutture dati utilizzate:}
     \begin{itemize}
