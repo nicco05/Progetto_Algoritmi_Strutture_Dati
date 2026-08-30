@@ -76,6 +76,12 @@ Il software viene suddiviso in tre moduli principali:\\ \\
         Le due funzioni \texttt{get\_nodo} e \texttt{aggiungi\_arco} sono i metodi che si occupano della costruzione effettiva del Grafo. 
         \item[-] Una volta che il Modulo di Caricamento ha estratto con successo la coppia di nodi $u$ e $v$ dal file testuale, esegue direttamente la chiamata \texttt{grafo.aggiungi\_arco(u, v)}. È esattamente attraverso questa istruzione che i due moduli comunicano: il primo estrae i dati in sequenza, il secondo li riceve e li organizza. In questo modo il grafo viene fisicamente costruito passo dopo passo.        
     \end{itemize}
+    \item \textbf{Librerie Standard utilizzate:}
+    \begin{itemize}
+        \item[-] \texttt{<vector>}: Indispensabile per la gestione dinamica della memoria, sia per implementare gli scompartimenti della Tabella Hash, sia per le liste di adiacenza all'interno dei singoli nodi.
+        \item[-] \texttt{<random>}: Fornisce l'algoritmo \texttt{rand()} per l'estrazione pseudo-casuale dei coefficienti matematici $a$ e $b$ necessari per l'Hashing Universale.
+        \item[-] \texttt{<ctime>}: Fondamentale per interagire con l'orologio di sistema. Viene utilizzata per impostare il "seme" (seed) iniziale del generatore di numeri casuali (tramite righa di comando \texttt{srand(time(NULL))} nel \texttt{main}), garantendo che ad ogni singola esecuzione del programma la Tabella Hash utilizzi parametri realmente imprevedibili.
+    \end{itemize}
     \item \textbf{Complessità attesa:} Grazie alle proprietà matematiche dell'hashing universale ed a un dimensionamento iniziale adeguato della tabella ($m$), le collisioni sono minimizzate. Le operazioni di ricerca, inserimento e aggiornamento di un arco avvengono in tempo ammortizzato costante $O(1)$.
     \item \textbf{Dipendenze e Accoppiamento:} Agisce da strato intermedio. Dipende esclusivamente dai dati forniti dal Modulo di Caricamento ed agisce come base per il Modulo Algoritmico.
 \end{enumerate}
@@ -168,3 +174,5 @@ La differenza temporale netta ($\Delta T = \texttt{T\_end} - \texttt{T\_start}$)
 \end{itemize}
 
 \end{document}
+
+
