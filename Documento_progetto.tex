@@ -34,12 +34,12 @@ Il software viene suddiviso in tre moduli principali:\\ \\
         \item[-] Lettura sequenziale dei numeri tramite l'operatore \texttt{>>} all'interno del ciclo \texttt{while (ss\_numeri >> v)}, salvando il valore estratto in $v$. Successivamente si verifica che $u$ sia diverso da -1 e che $u$ e $v$ siano tra loro diversi (per prevenire i self-loop). Se le condizioni sono soddisfatte, l'arco $(u, v)$ viene inserito nel Grafo. Infine, si pone $u = v$ per passare alla coppia di valori successiva.
         \item[-] Chiusura del file al termine della scansione tramite il metodo \texttt{file.close()}.
     \end{itemize}
-    \item \textbf{Strutture dati e Strumenti utilizzati:}
+    \item \textbf{Librerie Standard e Strutture dati utilizzate:}
     \begin{itemize}
-        \item[-] \texttt{ifstream}: Per la gestione dello stream di lettura unidirezionale dal disco.
-        \item[-] \texttt{string}: Per la memorizzazione temporanea della singola riga analizzata.
-        \item[-] \texttt{stringstream}: Per la conversione della stringa in uno stream elaborabile, estraendo i valori numerici in modo efficiente e sfruttando l'avanzamento automatico tra gli spazi bianchi.
-        \item[-] \texttt{replace}: Per la sostituzione dei caratteri \texttt{|} nei blocchi di testo.
+        \item[-] \texttt{<fstream>}: Fornisce le interfacce per le operazioni di Input/Output sul file system. In questo modulo è indispensabile per l'oggetto \texttt{ifstream}, che crea il "ponte" fisico tra il programma e il file salvato sul disco rigido.
+        \item[-] \texttt{<string>}: Implementa la classe standard \texttt{string}. È essenziale per la gestione dinamica, sicura ed efficiente della memoria quando si alloca la variabile testuale \texttt{line} che ospita temporaneamente la riga letta.
+        \item[-] \texttt{<sstream>}: Contiene la classe \texttt{stringstream}. Permette di prendere una normale stringa statica e trasformarla in un flusso di dati, abilitando l'estrazione parola per parola o numero per numero tramite l'operatore \texttt{>>}, automatizzando il salto degli spazi vuoti.
+        \item[-] \texttt{<algorithm>}: Fornisce un vastissimo set di algoritmi matematici e di utilità fortemente ottimizzati per le prestazioni. Nel modulo è stata inclusa unicamente per poter invocare \texttt{replace}, che consente di sostituire tutti i caratteri \texttt{|} con spazi bianchi alterando la stringa direttamente sul posto, senza dover creare copie aggiuntive in memoria.
     \end{itemize}
     \item \textbf{Complessità attesa:} 
     \begin{itemize}
@@ -47,31 +47,39 @@ Il software viene suddiviso in tre moduli principali:\\ \\
     \end{itemize}
     \item \textbf{Dipendenze e Accoppiamento:} Il modulo non dipende da altri sottomoduli. Agisce esclusivamente come sorgente dati per il Modulo Grafo. 
 \end{enumerate}
-{\large\textbf{Modulo Grafo:}} Gestisce l'inserimento dinamico dei nodi e degli archi, occupandosi inoltre di aggiornare le relative frequenze e di eliminare i self-loop e i collegamenti duplicati.\\ \\
+{\large\textbf{Modulo Grafo:}} Rappresenta il nucleo di memorizzazione del progetto. Gestisce l'allocazione dinamica dei vertici e degli archi in memoria, implementando un'interfaccia stabile per l'aggiornamento delle frequenze e la risoluzione delle collisioni. \\ \\
 {\large \textit{Specifiche}}
 \begin{enumerate}
-    \item \textbf{Input:} Sequenze di identificatori numerici (AS ID) che rappresentano i nodi attraversati in un singolo cammino BGP.
-    \item \textbf{Output:} Una struttura dati in memoria che rappresenta il grafo $G=(V,E,W)$ orientato e pesato, dove ogni arco rappresenta una relazione d'adiacenza osservata in un cammino BGP e il cui peso è dato dalla frequenza con cui tale arco compare nei cammini analizzati.
-    \item \textbf{Specifiche funzionali:}
+    \item \textbf{Input:} Riceve singoli input sotto forma di coppie di identificatori $(u, v)$ direttamente dal Modulo di Caricamento. (Nota: il modulo assume che l'eliminazione dei self-loop sia già stata eseguita prima della chiamata).
+    \item \textbf{Output:} Mantiene e aggiorna una struttura dati in memoria che rappresenta il grafo $G=(V,E,W)$ orientato e pesato. Espone metodi di accesso rapido per la navigazione delle adiacenze e il recupero dei pesi, essenziali per i successivi algoritmi di visita.  
+    \item \textbf{Specifiche funzionali e Strutture utilizzate:}
     \begin{itemize}
-        \item[-] Ricezione della sequenza di AS.
-        \item[-] Estrazione delle coppie di nodi adiacenti $(u, v)$ dalla sequenza per formare gli archi orientati.
-        \item[-] Eliminazione dei self-loop: durante l'estrazione, se due nodi consecutivi sono identici ($u = v$), il collegamento viene ignorato.
-        \item[-] Inserimento o aggiornamento dell'arco nella lista di adiacenza del nodo sorgente: se l'arco non esiste viene allocato con peso iniziale pari a 1; se esiste, il suo peso viene incrementato.
-    \end{itemize}
-    \item \textbf{Strutture dati utilizzate:}
-    \begin{itemize}
-       \item[-] \texttt{Tabelle Hash con Hashing Universale:} per la memorizzazione dei nodi verrà utilizzata una tabella hash con funzione di hash universale:
+        \item[-] All'inizio vengono stabilite le entità logiche di base: \texttt{struct Arco} definisce il singolo collegamento, è formato dall'ID del nodo destinazione e dal peso dell'arco (ovvero la frequenza con cui compare). \\
+        \texttt{struct Nodo} rappresenta il singolo Autonomous System, contiene il proprio ID numerico e un \texttt{vector<Arco>} che funge da lista di adiacenza del nodo.
+        \item[-] Viene introdotta la classe \texttt{UniversalHash} per mappare gli AS ID sparsi, traducendoli in indici per il successivo salvataggio nella Tabella Hash. Questa implementa la funzione matematica:
         \begin{equation}
-             h(x) = ((ax + b) \bmod p) \bmod m
+            h(x) = (ax + b) \bmod p
         \end{equation}
-        dove $m$ indica la dimensione della tabella hash, configurata in proporzione al numero atteso di nodi unici. $p$ è un grande numero primo scelto in modo da essere strettamente maggiore del valore massimo delle chiavi possibili ($p > \max(x)$). $a$ e $b$ sono coefficienti casuali con $1 \le a < p$ e $0 \le b < p$.
-        Inoltre, le collisioni verranno risolte tramite liste di concatenazione (\textit{chaining}), implementate tramite vettori dinamici per ottimizzare l'accesso in memoria.
-        \item[-]\texttt{Liste di adiacenza pesate:} la tabella hash mappa l'ID del nodo sorgente a un contenitore di archi uscenti, in cui ogni elemento memorizza l'ID del nodo destinazione e la relativa frequenza aggiornata.
+        Dove $a,b$ sono coefficienti random e $p$ un numero primo. La classe è stata progettata nel seguente modo: nello Stato Privato (\texttt{private}) sono inseriti i coefficienti $a$, $b$ e il numero primo $p$, mantenuti inaccessibili al resto del programma. \\
+        Nell'Interfaccia Pubblica (\texttt{public}) ci sono solo i servizi necessari. Il costruttore estrae casualmente (\texttt{rand()}) i coefficienti $a \in [1, p-1]$ e $b \in [0, p-1]$ all'avvio. Questa casualità garantisce un'ottima distribuzione delle chiavi, evitando che sequenze di dati sfortunate creino troppe collisioni nello stesso scompartimento. Infine, viene esposto il metodo \texttt{hash(long long x)} che esegue la trasformazione effettiva della chiave ($h(x)$) senza rivelare i parametri segreti usati per il calcolo.
+        \item[-] La struttura principale è la classe \texttt{GrafoHashTable}. Questa gestisce l'inserimento dei dati implementando una Tabella Hash con Hashing universale. Le strutture principali della classe sono: \\
+        Nel \texttt{private} vengono inseriti:
+        \begin{itemize}
+            \item[*] La dimensione $m$ della Tabella Hash. 
+            \item[*] Un \texttt{vector<vector<Nodo>> table} che rappresenta la memoria della Tabella Hash. Il vettore esterno modella gli $m$ scompartimenti, mentre quello interno implementa le liste di concatenazione per risolvere le collisioni.
+            \item[*] L'Oggetto delegato \texttt{hasher} della classe \texttt{UniversalHash}. La classe Grafo non esegue calcoli matematici complessi al proprio interno, ma li "delega" al motore \texttt{hasher}.
+            \item[*] La funzione \texttt{calcolaHash(int x)} per calcolare l'indice $h$ di un nodo $x$. Questa prende il risultato di $h(x)$ della classe \texttt{UniversalHash}, vi applica l'operatore modulo $m$, corregge gli eventuali risultati negativi sommando $m$ ad $h$ e ritorna l'indice $h$ definitivo. Questa operazione è la funzione di hash universale.
+        \end{itemize}   
+        Nel \texttt{public} la struttura principale è il \texttt{Costruttore}, che alloca preventivamente la dimensione totale $m$ della Tabella Hash e avvia la creazione dell'oggetto \texttt{UniversalHash}, passandogli il numero primo fisso $p = 998244353$ (scelto appositamente molto grande per minimizzare le collisioni).
+        \item[-] Una volta predisposta l'infrastruttura della Tabella Hash, viene implementata la funzione \texttt{get\_nodo(int nodo\_id)} (Metodo Privato): Funge da motore per il recupero o la creazione dinamica di un nodo il cui AS ID è \texttt{nodo\_id}. Calcola l'indice $h$ tramite \texttt{calcolaHash} e scandisce il relativo scompartimento \texttt{table[h]}. Se il nodo esiste lo restituisce, altrimenti lo alloca tramite \texttt{table[h].push\_back(\{nodo\_id,vector<Arco>()\})} (ovviamente \texttt{vector<Arco>()} è vuoto). Si noti che la funzione restituisce il nodo per riferimento (\texttt{Nodo\&}), permettendo modifiche dirette all'oggetto senza creare inutili copie in memoria.
+        \item[-] Successivamente viene implementata la funzione \texttt{void aggiungi\_arco(int u, int v)} (Metodo Pubblico): Rappresenta il punto di accesso utilizzato per l'inserimento degli archi nel Grafo. Prende in input due nodi $u,v$ e richiama \texttt{get\_nodo(u)} per ottenere il nodo sorgente, dopodiché scandisce la sua lista di adiacenza: se il nodo destinazione $v$ è già presente, incrementa la frequenza dell'arco ed esce dalla funzione; se la scansione termina senza successo, crea un nuovo arco verso $v$ con frequenza iniziale impostata a 1 nella lista di adiacenza di $u$ tramite \texttt{.push\_back(\{v,1\})}. \\
+        Le due funzioni \texttt{get\_nodo} e \texttt{aggiungi\_arco} sono i metodi che si occupano della costruzione effettiva del Grafo. 
+        \item[-] Una volta che il Modulo di Caricamento ha estratto con successo la coppia di nodi $u$ e $v$ dal file testuale, esegue direttamente la chiamata \texttt{grafo.aggiungi\_arco(u, v)}. È esattamente attraverso questa istruzione che i due moduli comunicano: il primo estrae i dati in sequenza, il secondo li riceve e li organizza. In questo modo il grafo viene fisicamente costruito passo dopo passo.        
     \end{itemize}
-    \item \textbf{Complessità attesa:} Grazie all'uso dell'hashing universale, le collisioni sono minimizzate e la ricerca/aggiornamento di un arco avvengono in tempo atteso costante $O(1)$. L'elaborazione di un singolo cammino composto da $K$ nodi richiede quindi un tempo $O(K)$.
-    \item \textbf{Dipendenze:} Dipende strettamente dai dati forniti dal Modulo di Caricamento. Agisce come base di partenza per il Modulo Algoritmico.
+    \item \textbf{Complessità attesa:} Grazie alle proprietà matematiche dell'hashing universale ed a un dimensionamento iniziale adeguato della tabella ($m$), le collisioni sono minimizzate. Le operazioni di ricerca, inserimento e aggiornamento di un arco avvengono in tempo ammortizzato costante $O(1)$.
+    \item \textbf{Dipendenze e Accoppiamento:} Agisce da strato intermedio. Dipende esclusivamente dai dati forniti dal Modulo di Caricamento ed agisce come base per il Modulo Algoritmico.
 \end{enumerate}
+
 {\large\textbf{Modulo Algoritmico (Cammini Minimax):}} Questo modulo rappresenta il cuore logico del progetto. Poiché il grafo in analisi è strettamente orientato, il modulo implementa una variante dell'algoritmo di Dijkstra per individuare i cammini minimi. \\
 A differenza del metodo standard — in cui il peso per raggiungere ciascun nodo dalla sorgente $s$ viene pre-inizializzato a $+\infty$ e nessun nodo possiede inizialmente un predecessore — si è implementata un'inizializzazione dinamica al fine di eliminare i pesanti costi computazionali e di memoria legati a queste assegnazioni. Tutto ciò è reso possibile dall'implementazione di un'apposita Tabella Hash che funge da tracciatore, memorizzando dinamicamente i costi dei cammini e i predecessori esclusivamente quando i nodi vengono effettivamente analizzati. \\
 Inoltre è stata adottata una popolazione dinamica della Coda di Priorità (\textit{Lazy Dijkstra}). Questo approccio, che prevede l'inserimento dei nodi man mano che vengono scoperti invece di inserirli tutti all'inizio, è utilizzato per gestire identificatori altamente sparsi come gli AS ID. \\
