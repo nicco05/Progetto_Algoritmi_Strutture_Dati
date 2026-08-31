@@ -1,15 +1,15 @@
-#include<fstream>
 #include<vector>
 #include<iostream>
+#include<fstream>
 #include<string> 
 #include<sstream> //per trasformare la riga in un flusso di dati
 #include<algorithm> //per la funzione replace
 #include<random> //per generare numeri casuali
+#include<ctime> //per il seme dei numeri casuali
 #include<limits> //per la costante INF
 #include<queue> //per la coda di priorità
 #include<functional> //per greater
 #include<chrono> //per trovare i tempi
-#include<ctime> //per il seme dei numeri casuali
 
 using namespace std;
 
@@ -34,11 +34,6 @@ class UniversalHash{
 
         UniversalHash(long long _p) // costruttore della classe UniversalHash
             : p(_p), a(rand() %  (_p-1) +1), b(rand()% _p) {} 
-
-        void rehash(){ 
-            a=rand() %  (p-1) +1;
-            b=rand()% p;
-        }
 };
 
 // Struttura che rappresenta la tripla
@@ -148,7 +143,6 @@ public:
         
         priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq; // Coda di Priorità, salva coppie <Costo_Corrente, AS_ID>
         // primo parametro: tipo di dato della coppia, secondo parametro: come viene salvato nella RAM, terzo parametro: come viene ordinato (min-heap)
-
         
         InfoCammino& info_sorgente = taccuino.get_info(nodo_sorgente);// inseriamo la sorgente in pq
         info_sorgente.costo = 0;
@@ -231,7 +225,6 @@ public:
             }
             return count; // Ritorniamo il numero totale di archi
         }
-
         
     long long stampaDistribuzioneFrequenze() {
         auto start_freq = chrono::high_resolution_clock::now(); // inizio timer per frequenze
@@ -293,7 +286,7 @@ public:
 
         taccuino_dfs.get_info(nodo_corrente).visitato=true; //marcatura del nodo corrente
 
-        Nodo& nodo_c = get_nodo(nodo_corrente); 
+        Nodo& nodo_c = get_nodo(nodo_corrente); // prendo le info del nodo corrente
         for(const auto& arco:nodo_c.adiacenze){ //esplorazione delle liste di adiacenza
             int v=arco.destinazione;
             int peso_arco=arco.frequenza;
@@ -308,7 +301,6 @@ public:
         
 
 };
-
 
 
 void caricaGrafoDaFile(const string& nomeFile, GrafoHashTable& grafo) {
@@ -360,7 +352,6 @@ void caricaGrafoDaFile(const string& nomeFile, GrafoHashTable& grafo) {
 
 
 
-
 int main(int argc,char **argv){
     srand(time(NULL)); // inizializza il seme per la gerazione dei numeri casuali
 
@@ -371,10 +362,9 @@ int main(int argc,char **argv){
     }
     cout << "Programma: " << argv[0] << endl;
     cout << "File: " << argv[1] << endl;
-
-    auto start_grafo = chrono::high_resolution_clock::now(); //inizio del 'timer' per la costruzione del grafo
+    
     GrafoHashTable grafo(100000); //  Creazione di un grafo con dimensione della tabella hash m=100000
-
+    auto start_grafo = chrono::high_resolution_clock::now(); //inizio del 'timer' per la costruzione del grafo  
     caricaGrafoDaFile(argv[1], grafo); // Chiamata alla funzione di caricamento, creo il grafo
     auto end_grafo = chrono::high_resolution_clock::now(); // stop del timer
     long long tempo_grafo = chrono::duration_cast<chrono::milliseconds>(end_grafo - start_grafo).count(); // conversione in millisecondi
